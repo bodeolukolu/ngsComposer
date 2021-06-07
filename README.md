@@ -1,8 +1,11 @@
 # INITIAL DEVELOPMENT RELEASE
-Please use ngsComposer at your own discretion. Currently, the software is in an early testing release. If you find any issues or have suggestions to improve ngsComposer or its documentation, please contact rkuster@utk.edu or 
+Please use ngsComposer at your own discretion. Currently, the software is in an early testing release. If you find any issues or have suggestions to improve ngsComposer or its documentation, please contact rkuster@utk.edu or
 bolukolu@utk.edu.
 
-<a><img src="https://i.imgur.com/hqfJVWJ.png" title="source: imgur.com" /></a>
+<p align="right">
+<img src="https://github.com/bodeolukolu/ngsComposer/blob/master/logo_ngsComposer.png" #width="1418.5" height="503.5">
+</p>
+
 
 # ngsComposer: empirically different
 
@@ -36,7 +39,7 @@ Currently, ngsComposer is only available for unix-based systems (i.e. macOS and 
 Clone or download the Git repository to your desired folder
 
 ```bash
-$ git clone https://github.com/ryandkuster/ngsComposer.git
+$ git clone https://github.com/bodeolukolu/ngsComposer.git
 ```
 
 Dependencies:
@@ -234,7 +237,7 @@ GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCTTAATGGCAAG
 GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCTGTGCCGCTTC
 GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCTCGGCAATGGA
 GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCTGCCGTAACCG
-GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCTAACCATTCTC 
+GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCTAACCATTCTC
 ```
 *Each of the above sample adapters is presented in 5' to 3' orientation and shares a common 'GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT' adapter sequence followed by expected barcodes. Adapter sequences may also include restriction motifs for greater detection, but these sequences will also be removed. Porifera.py creates all reverse-complements before detection.*
 
