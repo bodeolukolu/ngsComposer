@@ -3,8 +3,8 @@ Please use ngsComposer at your own discretion. Currently, the software is in an 
 bolukolu@utk.edu.
 
 <p align="right">
-<img src="https://github.com/bodeolukolu/ngsComposer/blob/master/logo_ngsComposer.png"
-
+<img src="https://github.com/bodeolukolu/ngsComposer/blob/master/logo_ngsComposer.png">
+</p>
 
 
 # ngsComposer: empirically different
