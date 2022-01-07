@@ -33,7 +33,7 @@ if [[ "$1" == "-v" || "$1" == "--version" ]]; then
   echo -e "${white}\tVersion:	1.0"
   echo -e "${white}\tDescription:	empirical base-call filtering pipeline for preprocessing fastq libraries"
   echo -e "${white}\tContact:	Bode Olukolu <bolukolu@utk.edu>\n"
-  echo -e "${white}\tmore info: https://github.com/bodeolukolu/ngscomposer for full usage notes\n"
+  echo -e "${white}\tmore info: \thttps://github.com/bodeolukolu/ngscomposer for full usage notes\n"
   exit 0
 fi
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
@@ -135,7 +135,7 @@ echo -e "${yellow}\t- Program:	ngsComposer"
 echo -e "${yellow}\t- Version:	1.0"
 echo -e "${yellow}\t- Description:	empirical base-call filtering pipeline for preprocessing fastq libraries"
 echo -e "${yellow}\t- Contact:	Bode Olukolu <bolukolu@utk.edu> ${white}"
-echo -e "${yellow}\t- more info: https://github.com/bodeolukolu/ngscomposer for full usage notes ${white}"
+echo -e "${yellow}\t- more info:	https://github.com/bodeolukolu/ngscomposer for full usage notes ${white}"
 echo -e "${white}\n##################################################################################\n"
 
 
@@ -170,11 +170,11 @@ fi
 cd $projdir
 samples_alt_dir="$(grep samples_alt_dir config.sh)"
 samples_alt_dir=${samples_alt_dir//*=}
-if [[ -z $samples_alt_dir || $samples_alt_dir =~ false ]]; then
+if [[ -z $samples_alt_dir || $samples_alt_dir =~ False ]]; then
 	:
 else
 	if [ -d ./samples ] && [ "$(ls -A ./samples)" ]; then
-    if [[ $(ls -lh | grep samples) =~ '->' || $samples_alt_dir =~ false ]]; then
+    if [[ $(ls -lh | grep samples) =~ '->' || $samples_alt_dir =~ False ]]; then
       :
     else
   		echo -e "${magenta}- samples already exist in ./project_directory/samples/ ${white}\n"
@@ -259,14 +259,14 @@ thread_node="$(grep ^threads config.sh)"
 thread_node=${thread_node//*=}
 
 if [ -z "$string" ]; then
- string=true
+ string=True
 fi
-if [ "$cluster" == false ]; then
+if [ "$cluster" == False ]; then
  unset cluster
 fi
 
 
-if [[ "$string" == false ]]; then
+if [[ "$string" == False ]]; then
   echo -e "${magenta}- ngsComposer will run in walk-through mode\n\n############################################################################## ${white}"
   if [ -z "$thread_node" ]; then
     echo -e "${magenta}- ngsComposer will use (total processors/cores)-2 ${white}"
@@ -291,7 +291,7 @@ fi
 
 
 
-if [[ "$string" == true ]]; then
+if [[ "$string" == True ]]; then
 if [ -z $cluster ]; then
   echo -e "${magenta}- ngsComposer will run in walkaway mode\n ${white}"
   echo -e "${white}##############################################################################\n ${white}"
@@ -380,7 +380,7 @@ if [ -z $cluster ]; then
   fi
 
   printf "#""!""/bin/bash \n\n" > header.txt
-  printf "walkaway=true \n\n" > walkaway.txt
+  printf "walkaway=True \n\n" > walkaway.txt
   printf "ngsComposer_dir=${ngsComposer_dir}\n" > fetchdir.txt
   printf "projdir=${projdir}" >> fetchdir.txt
   cat header.txt steps.txt config.sh walkaway.txt fetchdir.txt $string2 $string3 | awk '{ sub("\r$",""); print}' > ngsComposer_run.sh
@@ -402,8 +402,8 @@ fi
 
 
 
-if [[ "$string" == true ]]; then
-if [[ "$cluster" == true ]]; then
+if [[ "$string" == True ]]; then
+if [[ "$cluster" == True ]]; then
   if [ -z "$thread_node" ]; then
     echo -e "${magenta}- Please provide number of threads in config.sh (for cluster node) ${white}"
     echo -e "${magenta}- ngsComposer will quit ${white}"
@@ -492,7 +492,7 @@ if [[ "$cluster" == true ]]; then
   fi
 
   printf "#""!""/bin/bash \n#SBATCH -c ${thread_node} \n\n" > cluster_header.sh
-  printf "walkaway=true \n\n" > walkaway.txt
+  printf "walkaway=True \n\n" > walkaway.txt
   cat cluster_header.sh steps.txt config.sh walkaway.txt fetchdir.txt $string2 $string3 | awk '{ sub("\r$",""); print}' > ngsComposer_run.sh
   rm fetchdir.txt cluster_header.sh header.txt steps.txt walkaway.txt
   slurm_check=$(sbatch --version)

@@ -6,14 +6,29 @@ if [ -z "$threads" ]; then
 	fi
 fi
 
+if [[ -z $walkaway ]]; then
+	walkaway=True
+fi
+if [[ -z $cluster ]]; then
+	cluster=False
+fi
+if [[ -z $samples_alt_dir ]]; then
+	samples_alt_dir=True
+fi
 if [[ -z $rm_transit ]]; then
-	rm_transit=true
+	rm_transit=True
 fi
 if [[ -z $front_trim ]]; then
 	front_trim=0
 fi
 if [[ -z $mismatch ]]; then
 	mismatch=1
+fi
+if [[ -z $R1_motif ]]; then
+	R1_motif=""
+fi
+if [[ -z $R2_motif ]]; then
+	R2_motif=""
 fi
 if [[ -z $non_genomic ]]; then
 	non_genomic=0
@@ -59,6 +74,10 @@ if [[ "$QC_all" =~ full ]]; then
 fi
 if [[ -z $QC_final ]]; then
 	QC_final=summary
+fi
+test_lib_R2=$(grep '^lib' config.sh | grep '_R2=' | awk '{gsub(/=/,"\t"); print $2}')
+if [[ -z "$test_lib_R2" ]]; then
+	test_lib_R2=False
 fi
 
 
@@ -109,7 +128,7 @@ main_initial_qc() {
 	for li in $list_lib; do
 		python3 $crinoid -r1 ./samples/${li} -t ${threads} -o ./1_initial_qc & PIDR1=$!
 		wait $PIDR1
-		if [[ "$lib1_R2" != false ]]; then
+		if [[ "$test_lib_R2" != False ]]; then
 			lj=$(echo $li | awk '{gsub(/R1/,"R2"); print}')
 			python3 $crinoid -r1 ./samples/${lib1_R2} -t ${threads} -o ./1_initial_qc & PIDR1=$!
 			wait $PIDR1
@@ -117,7 +136,7 @@ main_initial_qc() {
 	done
 }
 cd $projdir
-if [ "$walkaway" == false ]; then
+if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- Do you want to perform intial QC? ${white}\n"
 	read -p "- y(YES) or n(NO) " -t 36000 -n 1 -r
 	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -129,7 +148,7 @@ if [ "$walkaway" == false ]; then
 		time main_initial_qc &>> log.out
 	fi
 fi
-if [ "$walkaway" == true ]; then
+if [ "$walkaway" == True ]; then
 	if [ "$initial_qc" == 1 ]; then
 		echo -e "${magenta}- performing initial QC ${white}\n"
 		time main_initial_qc &>> log.out
@@ -151,7 +170,7 @@ main_demultiplex() {
   for li in $list_lib; do
     bc_matrix=$(grep -h "$li" config.sh | awk '{gsub(/_R1/,"\t"); print $1"_bc"}')
     bc_matrix=$(grep -h "$bc_matrix" config.sh | awk '{gsub(/=/,"\t"); print $2}')
-    if [[ "$lib1_R2" != false ]]; then
+    if [[ "$test_lib_R2" != False ]]; then
 			lj=$(echo $li | awk '{gsub(/_R1/,"_R2"); print}')
 		fi
 
@@ -214,31 +233,31 @@ main_demultiplex() {
 
     cd ./2_demultiplexed
     $zcat ${projdir}/samples/"$li" | awk 'NR%40000000==1{x="R1_chunk"++i".fastq";}{print > x}' - & PIDR1=$!
-    if [[ "$lib1_R2" != false ]]; then
+    if [[ "$test_lib_R2" != False ]]; then
 			$zcat ${projdir}/samples/"$lj" | awk 'NR%40000000==1{x="R2_chunk"++i".fastq";}{print > x}' - & PIDR2=$!
 		fi
     wait $PIDR1
-    if [[ "$lib1_R2" != false ]]; then wait $PIDR2; fi
+    if [[ "$test_lib_R2" != False ]]; then wait $PIDR2; fi
 
     for f in R1_chunk*; do
       subdir=${f%.fastq}
       subdir=${subdir##*_}
       mkdir -- "$subdir"
       mv "R1_${subdir}.fastq" "$subdir"
-      if [[ "$lib1_R2" != false ]]; then mv "R2_${subdir}.fastq" "$subdir"; fi
+      if [[ "$test_lib_R2" != False ]]; then mv "R2_${subdir}.fastq" "$subdir"; fi
     done
     wait
 
 		awk '{gsub(/_Row/,"\t"); gsub(/_Column/,"\t"); print}' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk '{print $1}' | sort | uniq > ${projdir}/cat_RC.txt
     for ck in chunk*; do (
       cd $ck
-      if [[ "$lib1_R2" != false ]]; then
+      if [[ "$test_lib_R2" != False ]]; then
 				python3 $scallop -r1 ./R1_${ck}.fastq -f $front_trim && rm R1_${ck}.fastq
 				python3 $scallop -r1 ./R2_${ck}.fastq -f $front_trim && rm R2_${ck}.fastq
 			else
 				python3 $scallop -r1 ./R1_${ck}.fastq -f $front_trim && rm R1_${ck}.fastq
 			fi
-			if [[ "$lib1_R2" != false ]]; then
+			if [[ "$test_lib_R2" != False ]]; then
 				python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -r2 ./trimmed_se.R2_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
 			else
 				python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
@@ -255,7 +274,7 @@ main_demultiplex() {
 					wait
 				fi
 			done
-			if [[ "$lib1_R2" != false ]]; then
+			if [[ "$test_lib_R2" != False ]]; then
 				for sid in $(ls *.R2.fastq | grep -v unknown); do
 					fringelen=$( awk -F'\t' -v sampid=${sid%.R2.fastq} '$1 == sampid' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk -F'\t' '{print $2}' )
 					if [[ "$fringelen" -gt 0 ]]; then
@@ -271,7 +290,7 @@ main_demultiplex() {
 			# Now combine fastq files with the same sample_ID
 			while IFS="" read -r p || [ -n "$p" ]; do
 				find ./${p}_Row*_Column*R1* | xargs cat > ${p}.R1.fastq.gz
-				if [[ "$lib1_R2" != false ]]; then
+				if [[ "$test_lib_R2" != False ]]; then
 					find ./${p}_Row*_Column*R2* | xargs cat > ${p}.R2.fastq.gz
 				fi
 				rm ${p}_Row*_Column*
@@ -293,7 +312,7 @@ main_demultiplex() {
   wait
 
 	find ./*chunk*/unknown.R1.fastq | xargs cat > ./unknown/unknown.R1.fastq & PIDR1=$!
-	if [[ "$lib1_R2" != false ]]; then
+	if [[ "$test_lib_R2" != False ]]; then
 		find ./*chunk*/unknown.R2.fastq | xargs cat > ./unknown/unknown.R2.fastq  & PIDR2=$!
 	fi
 	wait $PIDR1
@@ -325,12 +344,12 @@ main_demultiplex() {
 		mkdir -p qc
 		python3 $crinoid -r1 ./unknown.R1.fastq.gz -t "${threads}" -o ./qc & PIDR1=$!
 		wait $PIDR1
-		if [[ "$lib1_R2" != false ]]; then
+		if [[ "$test_lib_R2" != False ]]; then
 			python3 $crinoid -r1 ./unknown.R2.fastq.gz -t "${threads}" -o ./qc & PIDR1=$!
 			wait $PIDR1
 		fi
 
-		if [[ "$lib1_R2" != false ]]; then
+		if [[ "$test_lib_R2" != False ]]; then
 			cd ../pe
 		else
 			cd ../se
@@ -343,7 +362,7 @@ main_demultiplex() {
 			fi
 		done
 		wait
-		if [[ "$lib1_R2" != false ]]; then
+		if [[ "$test_lib_R2" != False ]]; then
 			for f in *.R2.fastq.gz; do (
 				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
 				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
@@ -361,20 +380,20 @@ main_demultiplex() {
 			qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 			nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 			awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-				END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_demultiplexed_R1_summary.csv
+				END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_demultiplexed_R1_summary.csv &&
 			awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-				END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_demultiplexed_R1_summary.csv
-			Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_demultiplexed_R1_summary.csv nucleotides_demultiplexed_R1_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages  & PIDR1=$!
+				END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_demultiplexed_R1_summary.csv &&
+			Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_demultiplexed_R1_summary.csv nucleotides_demultiplexed_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages  & PIDR1=$!
 			wait $PIDR1
 
-			if [[ "$lib1_R2" != false ]]; then
+			if [[ "$test_lib_R2" != False ]]; then
 				qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_demultiplexed_R2_summary.csv
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_demultiplexed_R2_summary.csv &&
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_demultiplexed_R2_summary.csv
-				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_demultiplexed_R2_summary.csv nucleotides_demultiplexed_R2_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_demultiplexed_R2_summary.csv &&
+				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_demultiplexed_R2_summary.csv nucleotides_demultiplexed_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 			fi
 		fi
@@ -387,7 +406,7 @@ main_demultiplex() {
 
 }
 cd $projdir
-if [ "$walkaway" == false ]; then
+if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- Do you want to perform demultiplexing? ${white}\n"
 	read -p "- y(YES) or n(NO) " -t 36000 -n 1 -r
 	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -399,7 +418,7 @@ if [ "$walkaway" == false ]; then
 		time main_demultiplex &>> log.out
 	fi
 fi
-if [ "$walkaway" == true ]; then
+if [ "$walkaway" == True ]; then
 	if [ "$demultiplex" == 1 ]; then
 		echo -e "${magenta}- performing demultiplexing ${white}\n"
 		time main_demultiplex &>> log.out
@@ -409,7 +428,7 @@ if [ "$walkaway" == true ]; then
 fi
 
 
-if [ "$walkaway" == false ]; then
+if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- Demultiplexing was performed with a mismatch="$mismatch" ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
 	echo -e "${magenta}- Do you want to change the mismatch value and re-run demultiplexing? ${white}"
@@ -443,7 +462,7 @@ main_motif_validation() {
   motifR1=$( echo $R1_motif | awk '{gsub(/,/," "); print}')
   motifR2=$( echo $R2_motif | awk '{gsub(/,/," "); print}')
 
-	if [[ "$lib1_R2" != false ]]; then
+	if [[ -d "${projdir}/2_demultiplexed/pe" ]]; then
 		for mot in ${projdir}/2_demultiplexed/pe/*.R1.fastq.gz; do (
 		    $gunzip $mot; $gunzip ${mot%.R1.fastq.gz}.R2.fastq.gz &&
 		    python3 $rotifer -r1 ${mot%.R1.fastq.gz}.R1.fastq -r2 ${mot%.R1.fastq.gz}.R2.fastq -m1 $motifR1 -m2 $motifR2 -o ./ &&
@@ -455,7 +474,7 @@ main_motif_validation() {
 		done
 		wait
 	fi
-  if [[ "$lib1_R2" == false ]]; then
+  if [[ -d "${projdir}/2_demultiplexed/se" ]]; then
 		for mot in ${projdir}/2_demultiplexed/se/*.R1.fastq.gz; do (
 			$gunzip $mot &&
 			python3 $rotifer -r1 ${mot%.R1.fastq.gz}.R1.fastq -m1 $motifR1 -o ./ &&
@@ -497,20 +516,20 @@ main_motif_validation() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_motif_valid_R1_summary.csv
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_motif_valid_R1_summary.csv &&
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_motif_valid_R1_summary.csv
-				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_motif_valid_R1_summary.csv nucleotides_motif_valid_R1_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_motif_valid_R1_summary.csv &&
+				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_motif_valid_R1_summary.csv nucleotides_motif_valid_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
-				if [[ "$lib1_R2" != false ]]; then
+				if [[ "$test_lib_R2" != False ]]; then
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_motif_valid_R2_summary.csv
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_motif_valid_R2_summary.csv &&
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_motif_valid_R2_summary.csv
-					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_motif_valid_R2_summary.csv nucleotides_motif_valid_R2_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_motif_valid_R2_summary.csv &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_motif_valid_R2_summary.csv nucleotides_motif_valid_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
 			fi
@@ -520,10 +539,10 @@ main_motif_validation() {
 			find . -type d -empty -delete
 		fi
 
-		if [[ -d ${projdir}/3_motif_validated/se && "$lib1_R2" != false ]]; then
+		if [[ -d ${projdir}/3_motif_validated/se && "$test_lib_R2" != False ]]; then
 			cd ${projdir}/3_motif_validated/se
 			mkdir -p qc
-			if [[ "$lib1_R2" != false ]]; then
+			if [[ "$test_lib_R2" != False ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
 					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc ) &
@@ -533,7 +552,7 @@ main_motif_validation() {
 				done
 				wait
 			fi
-			if [[ -d se && "$lib1_R2" == false ]]; then
+			if [[ -d se && "$test_lib_R2" == False ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
 					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
@@ -551,20 +570,20 @@ main_motif_validation() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_motif_valid_R1_summary.csv
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_motif_valid_R1_summary.csv &&
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_motif_valid_R1_summary.csv
-				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_motif_valid_R1_summary.csv nucleotides_motif_valid_R1_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_motif_valid_R1_summary.csv &&
+				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_motif_valid_R1_summary.csv nucleotides_motif_valid_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
-				if [[ "$lib1_R2" != false ]]; then
+				if [[ "$test_lib_R2" != False ]]; then
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_motif_valid_R2_summary.csv
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_motif_valid_R2_summary.csv &&
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_motif_valid_R2_summary.csv
-					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_motif_valid_R2_summary.csv nucleotides_motif_valid_R2_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_motif_valid_R2_summary.csv &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_motif_valid_R2_summary.csv nucleotides_motif_valid_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
 			fi
@@ -577,7 +596,7 @@ main_motif_validation() {
 
 }
 cd $projdir
-if [ "$walkaway" == false ]; then
+if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- Do you want to perform known motif validation? ${white}\n"
 	read -p "- y(YES) or n(NO) " -t 36000 -n 1 -r
 	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -589,7 +608,7 @@ if [ "$walkaway" == false ]; then
 		time main_motif_validation &>> log.out
 	fi
 fi
-if [ "$walkaway" == true ]; then
+if [ "$walkaway" == True ]; then
 	if [ "$motif_validation" == 1 ]; then
 		echo -e "${magenta}- performing known motif validation ${white}\n"
 		time main_motif_validation &>> log.out
@@ -598,7 +617,7 @@ if [ "$walkaway" == true ]; then
 	fi
 fi
 
-if [ "$walkaway" == false ]; then
+if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- motif validation was performed with R1_motif="$R1_motif", R2_motif="$R2_motif" ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
 	echo -e "${magenta}- Do you want to skip R1_motif? ${white}"
@@ -639,7 +658,7 @@ if [ "$walkaway" == false ]; then
 	fi
 fi
 
-if [[ "$rm_transit" == true ]]; then
+if [[ "$rm_transit" == True ]]; then
 	rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
 fi
 
@@ -654,7 +673,7 @@ main_end_trim() {
 	cd 4_end_trimmed
 	mkdir -p pe se
 
-	if [[ "$lib1_R2" != false ]]; then
+	if [[ -d "${projdir}/3_motif_validated/pe" ]]; then
 		for etm in ${projdir}/3_motif_validated/pe/*.R1.fastq.gz; do (
 			$gunzip $etm; $gunzip ${etm%.R1.fastq.gz}.R2.fastq.gz &&
 			python3 $scallop -r1 ${etm%.R1.fastq.gz}.R1.fastq -e $end_score -w $window -l $min_len -o ./pe/ &&
@@ -667,7 +686,7 @@ main_end_trim() {
 		done
 		wait
 	fi
-	if [[ -d "./se" ]]; then
+	if [[ -d "${projdir}/3_motif_validated/se" ]]; then
 		for etm in ${projdir}/3_motif_validated/se/*.fastq.gz; do (
 			$gunzip $etm &&
 			python3 $scallop -r1 ${etm%.gz} -e $end_score -w $window -l $min_len -o ./se/ &&
@@ -718,20 +737,20 @@ main_end_trim() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_end_trimmed_R1_summary.csv
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_end_trimmed_R1_summary.csv &&
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_end_trimmed_R1_summary.csv
-				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_end_trimmed_R1_summary.csv nucleotides_end_trimmed_R1_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_end_trimmed_R1_summary.csv &&
+				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_end_trimmed_R1_summary.csv nucleotides_end_trimmed_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
-				if [[ "$lib1_R2" != false ]]; then
+				if [[ "$test_lib_R2" != False ]]; then
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_end_trimmed_R2_summary.csv
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_end_trimmed_R2_summary.csv &&
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_end_trimmed_R2_summary.csv
-					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_end_trimmed_R2_summary.csv nucleotides_end_trimmed_R2_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_end_trimmed_R2_summary.csv &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_end_trimmed_R2_summary.csv nucleotides_end_trimmed_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
 			fi
@@ -741,10 +760,10 @@ main_end_trim() {
 			find . -type d -empty -delete
 		fi
 
-		if [[ -d ${projdir}/4_end_trimmed/se && "$lib1_R2" != false ]]; then
+		if [[ -d ${projdir}/4_end_trimmed/se && "$test_lib_R2" != False ]]; then
 			cd ${projdir}/4_end_trimmed/se
 			mkdir -p qc
-			if [[ "$lib1_R2" != false ]]; then
+			if [[ "$test_lib_R2" != False ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
 					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc ) &
@@ -754,7 +773,7 @@ main_end_trim() {
 				done
 				wait
 			fi
-			if [[ -d se && "$lib1_R2" == false ]]; then
+			if [[ -d se && "$test_lib_R2" == False ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
 					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
@@ -772,20 +791,20 @@ main_end_trim() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_end_trimmed_R1_summary.csv
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_end_trimmed_R1_summary.csv &&
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_end_trimmed_R1_summary.csv
-				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_end_trimmed_R1_summary.csv nucleotides_end_trimmed_R1_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_end_trimmed_R1_summary.csv &&
+				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_end_trimmed_R1_summary.csv nucleotides_end_trimmed_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
-				if [[ "$lib1_R2" != false ]]; then
+				if [[ "$test_lib_R2" != False ]]; then
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_end_trimmed_R2_summary.csv
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_end_trimmed_R2_summary.csv &&
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_end_trimmed_R2_summary.csv
-					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_end_trimmed_R2_summary.csv nucleotides_end_trimmed_R2_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_end_trimmed_R2_summary.csv &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_end_trimmed_R2_summary.csv nucleotides_end_trimmed_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
 			fi
@@ -798,7 +817,7 @@ main_end_trim() {
 
 }
 cd $projdir
-if [ "$walkaway" == false ]; then
+if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- Do you want to perform end-trimming of reads? ${white}\n"
 	read -p "- y(YES) or n(NO) " -t 36000 -n 1 -r
 	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -810,7 +829,7 @@ if [ "$walkaway" == false ]; then
 		time main_end_trim &>> log.out
 	fi
 fi
-if [ "$walkaway" == true ]; then
+if [ "$walkaway" == True ]; then
 	if [ "$end_trim" == 1 ]; then
 		echo -e "${magenta}- performing end-trimming of reads ${white}\n"
 		time main_end_trim &>> log.out
@@ -820,7 +839,7 @@ if [ "$walkaway" == true ]; then
 fi
 
 
-if [ "$walkaway" == false ]; then
+if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- end trimming was performed with end_score="$end_score" window="$window" min_len="$min_len" ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
 	echo -e "${magenta}- Do you want to change end_score value? ${white}"
@@ -855,7 +874,7 @@ if [ "$walkaway" == false ]; then
 fi
 
 
-if [[ "$rm_transit" == true ]]; then
+if [[ "$rm_transit" == True ]]; then
 	rm ${projdir}/3_motif_validated/pe/*fastq* 2> /dev/null
 	rm ${projdir}/3_motif_validated/se/*fastq* 2> /dev/null
 fi
@@ -875,7 +894,7 @@ main_adapter_remove() {
 	cd 5_adapter_removed
 	mkdir -p pe se
 
-	if [[ "$lib1_R2" != false ]]; then
+	if [[ -d "${projdir}/4_end_trimmed/pe" ]]; then
 		for adp in ${projdir}/4_end_trimmed/pe/*.R1.fastq.gz; do (
 			$gunzip $adp; $gunzip ${adp%.R1.fastq.gz}.R2.fastq.gz &&
 			python3 $porifera -r1 ${adp%.R1.fastq.gz}.R1.fastq -r2 ${adp%.R1.fastq.gz}.R2.fastq -a1 ${projdir}/adapters.R1.txt -a2 ${projdir}/adapters.R2.txt -m $adapter_match -l $min_len -o ./pe/ ) &
@@ -942,20 +961,20 @@ main_adapter_remove() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_adapter_removed_R1_summary.csv
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_adapter_removed_R1_summary.csv &&
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_adapter_removed_R1_summary.csv
-				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_adapter_removed_R1_summary.csv nucleotides_adapter_removed_R1_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_adapter_removed_R1_summary.csv &&
+				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_adapter_removed_R1_summary.csv nucleotides_adapter_removed_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
-				if [[ "$lib1_R2" != false ]]; then
+				if [[ "$test_lib_R2" != False ]]; then
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_adapter_removed_R2_summary.csv
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_adapter_removed_R2_summary.csv &&
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_adapter_removed_R2_summary.csv
-					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_adapter_removed_R2_summary.csv nucleotides_adapter_removed_R2_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_adapter_removed_R2_summary.csv &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_adapter_removed_R2_summary.csv nucleotides_adapter_removed_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
 			fi
@@ -965,10 +984,10 @@ main_adapter_remove() {
 			find . -type d -empty -delete
 		fi
 
-		if [[ -d ${projdir}/5_adapter_removed/se && "$lib1_R2" != false ]]; then
+		if [[ -d ${projdir}/5_adapter_removed/se && "$test_lib_R2" != False ]]; then
 			cd ${projdir}/5_adapter_removed/se
 			mkdir -p qc
-			if [[ "$lib1_R2" != false ]]; then
+			if [[ "$test_lib_R2" != False ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
 					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc ) &
@@ -978,7 +997,7 @@ main_adapter_remove() {
 				done
 				wait
 			fi
-			if [[ -d se && "$lib1_R2" == false ]]; then
+			if [[ -d se && "$test_lib_R2" == False ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
 					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
@@ -996,20 +1015,20 @@ main_adapter_remove() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_adapter_removed_R1_summary.csv
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_adapter_removed_R1_summary.csv &&
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_adapter_removed_R1_summary.csv
-				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_adapter_removed_R1_summary.csv nucleotides_adapter_removed_R1_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_adapter_removed_R1_summary.csv &&
+				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_adapter_removed_R1_summary.csv nucleotides_adapter_removed_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
-				if [[ "$lib1_R2" != false ]]; then
+				if [[ "$test_lib_R2" != False ]]; then
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_adapter_removedd_R2_summary.csv
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_adapter_removedd_R2_summary.csv &&
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_adapter_removed_R2_summary.csv
-					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_adapter_removed_R2_summary.csv nucleotides_adapter_removed_R2_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_adapter_removed_R2_summary.csv &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_adapter_removed_R2_summary.csv nucleotides_adapter_removed_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
 			fi
@@ -1022,7 +1041,7 @@ main_adapter_remove() {
 
 }
 cd $projdir
-if [ "$walkaway" == false ]; then
+if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- Do you want to perform adapter removal? ${white}\n"
 	read -p "- y(YES) or n(NO) " -t 36000 -n 1 -r
 	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -1034,7 +1053,7 @@ if [ "$walkaway" == false ]; then
 		time main_adapter_remove &>> log.out
 	fi
 fi
-if [ "$walkaway" == true ]; then
+if [ "$walkaway" == True ]; then
 	if [ "$adapter_remove" == 1 ]; then
 		echo -e "${magenta}- performing adapter removal ${white}\n"
 		time main_adapter_remove &>> log.out
@@ -1044,7 +1063,7 @@ if [ "$walkaway" == true ]; then
 fi
 
 
-if [ "$walkaway" == false ]; then
+if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- adapter removal was performed with adapter_match="$adapter_match" min_len="$min_len" ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
 	echo -e "${magenta}- Do you want to change adapter_match value? ${white}"
@@ -1071,7 +1090,7 @@ if [ "$walkaway" == false ]; then
 fi
 
 
-if [[ "$rm_transit" == true ]]; then
+if [[ "$rm_transit" == True ]]; then
 	rm ${projdir}/4_end_trimmed/pe/*fastq* 2> /dev/null
 	rm ${projdir}/4_end_trimmed/se/*fastq* 2> /dev/null
 fi
@@ -1088,7 +1107,7 @@ main_quality_filter() {
 	cd 6_quality_filtered_final
 	mkdir -p pe se
 
-	if [[ "$lib1_R2" != false ]]; then
+	if [[ -d "${projdir}/5_adapter_removed/pe" ]]; then
 		for fin in ${projdir}/5_adapter_removed/pe/*.R1.fastq.gz; do (
 			$gunzip $fin; $gunzip ${fin%.R1.fastq.gz}.R2.fastq.gz &&
 			python3 $krill -r1 ${fin%.R1.fastq.gz}.R1.fastq -r2 ${fin%.R1.fastq.gz}.R2.fastq -q $q_min -p $q_percent -o ./pe/ &&
@@ -1151,20 +1170,20 @@ main_quality_filter() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_final_R1_summary.csv
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_final_R1_summary.csv &&
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_final_R1_summary.csv
-				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R1_summary.csv nucleotides_final_R1_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_final_R1_summary.csv &&
+				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R1_summary.csv nucleotides_final_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
-				if [[ "$lib1_R2" != false ]]; then
+				if [[ "$test_lib_R2" != False ]]; then
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_final_R2_summary.csv
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_final_R2_summary.csv &&
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_final_R2_summary.csv
-					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R2_summary.csv nucleotides_final_R2_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_final_R2_summary.csv &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R2_summary.csv nucleotides_final_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
 			fi
@@ -1174,10 +1193,10 @@ main_quality_filter() {
 			find . -type d -empty -delete
 		fi
 
-		if [[ -d ${projdir}/6_quality_filtered_final/se && "$lib1_R2" != false ]]; then
+		if [[ -d ${projdir}/6_quality_filtered_final/se && "$test_lib_R2" != False ]]; then
 			cd ${projdir}/6_quality_filtered_final/se
 			mkdir -p qc
-			if [[ "$lib1_R2" != false ]]; then
+			if [[ "$test_lib_R2" != False ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
 					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc ) &
@@ -1187,7 +1206,7 @@ main_quality_filter() {
 				done
 				wait
 			fi
-			if [[ -d se && "$lib1_R2" == false ]]; then
+			if [[ -d se && "$test_lib_R2" == False ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
 					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
@@ -1205,20 +1224,20 @@ main_quality_filter() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_final_R1_summary.csv
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_final_R1_summary.csv &&
 				awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_final_R1_summary.csv
-				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R1_summary.csv nucleotides_final_R1_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+					END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_final_R1_summary.csv &&
+				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R1_summary.csv nucleotides_final_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
-				if [[ "$lib1_R2" != false ]]; then
+				if [[ "$test_lib_R2" != False ]]; then
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_finald_R2_summary.csv
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_finald_R2_summary.csv &&
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_final_R2_summary.csv
-					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R2_summary.csv nucleotides_final_R2_summary.csv ${ngsCompser_dir}/tools/helpers/R_packages & PIDR1=$!
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_final_R2_summary.csv &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R2_summary.csv nucleotides_final_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
 			fi
@@ -1232,7 +1251,7 @@ main_quality_filter() {
 
 }
 cd $projdir
-if [ "$walkaway" == false ]; then
+if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- Do you want to perform read quality-filtering? ${white}\n"
 	read -p "- y(YES) or n(NO) " -t 36000 -n 1 -r
 	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
@@ -1244,7 +1263,7 @@ if [ "$walkaway" == false ]; then
 		time main_quality_filter &>> log.out
 	fi
 fi
-if [ "$walkaway" == true ]; then
+if [ "$walkaway" == True ]; then
 	if [ "$quality_filter" == 1 ]; then
 		echo -e "${magenta}- performing read quality-filtering ${white}\n"
 		time main_quality_filter &>> log.out
@@ -1255,7 +1274,7 @@ fi
 
 
 
-if [ "$walkaway" == false ]; then
+if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- quality filtering was performed with q_min="$q_min" q_percent="$q_percent" ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
 	echo -e "${magenta}- Do you want to change q_min value? ${white}"
@@ -1282,7 +1301,7 @@ if [ "$walkaway" == false ]; then
 fi
 
 
-if [[ "$rm_transit" == true ]]; then
+if [[ "$rm_transit" == True ]]; then
 	rm ${projdir}/5_adapter_removed/pe/*fastq* 2> /dev/null
 	rm ${projdir}/5_adapter_removed/se/*fastq* 2> /dev/null
 fi

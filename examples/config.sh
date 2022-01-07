@@ -1,22 +1,21 @@
-# General parameters
+#General_parameters
 ###################################################
 threads=24
-walkaway=true
-cluster=true
-samples_alt_dir=false
-rm_transit=true
+walkaway=True
+cluster=True
+samples_alt_dir=False
+rm_transit=True
 
-
-# Input files
+#Input_files
 ###################################################
 lib1_R1=test1_R1.fastq.gz
 lib1_R2=test1_R2.fastq.gz
-lib1_bc=barcodes_1.txt
+lib1_bc=barcodes_lib1.txt
 lib2_R1=test2_R1.fastq.gz
 lib2_R2=test2_R2.fastq.gz
-lib2_bc=barcodes_2.txt
+lib2_bc=barcodes_lib2.txt
 
-# parameters
+#Tool_parameters
 ###################################################
 front_trim=6
 mismatch=1
@@ -29,8 +28,7 @@ adapter_match=12
 q_min=20
 q_percent=80
 
-
-# Visualizations
+#Visualizations
 ###################################################
 QC_all=summary,full
 QC_demultiplexed=summary,full

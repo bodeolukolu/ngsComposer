@@ -39,7 +39,7 @@ Currently, ngsComposer is only available for unix-based systems (i.e. macOS and 
 Clone or download the Git repository to your desired folder
 
 ```bash
-$ git clone https://github.com/bodeolukolu/ngsComposer.git
+git clone https://github.com/bodeolukolu/ngsComposer.git
 ```
 
 Dependencies:
@@ -84,62 +84,126 @@ The steps implemented are first specified in a configuration file.
 ### Configuration
 Using a text editor, save a file containing any of the following variables as a python script called 'conf.py' (includes '.py' as file extension) and include it in your project directory.
 
-|Variable      |Purpose       |Usage         |Input |
-|:-------------|:-------------|:-------------|:-------------|
-|paired|general|if fastq files should be treated as paired ends|True or False|
-|procs|general|choose maximum number of subprocesses that can run simultaneously|integer|
-|alt_dir|general|optional, full path to empty directory for file storage|e.g. '/path/to/dir/' (quotes required)|
-|walkaway|general|run from beginning to end without pausing at qc steps (use True to run without interruption, use False to initiate user-controlled walkthrough mode: requires all_qc)|True or False|
-|rm_transit|general|optional, remove each transitional file folder to save space|True or False|
-|initial_qc|QC metrics|create initial QC output|True or False|
-|all_qc|QC metrics|perform qc step at each filtering stage (use 'full' to produce visualizations for every file, use 'summary' for a summarized version of the R1, R2, and single reads)|'full' or 'summary' (quotes required)|
-|front_trim|buffer trimming|positions to trim from front of read before demultiplexing, leave 0 if no buffer sequence|integer|
-|mismatch|demultiplexing|number of mismatches (hamming distance) allowed in barcodes (must include 'index.txt' and barcodes file(s) in project directory; see "Demultiplexing" below)|integer|
-|R1_bases_ls|motif filtering|list expected sequence motifs immediately adjacent to barcodes (e.g. restriction sites)|e.g. ['TCC', 'TCT'] (quotes, commas, and brackets required)|
-|R2_bases_ls|motif filtering|list expected sequence motifs immediately adjacent to barcodes (e.g. restriction sites)|e.g. ['TCC', 'TCT'] (quotes, commas, and brackets required)|
-|non_genomic|motif filtering|number of non-genomic bases not found in barcode sequence (e.g. 'T' complementary to A-tailing library prep)|integer|
-|end_score|end trimming|end-trim once entire window >= this Q score|integer between 0 and 40|
-|window|end trimming|size of window to test for >= end_trim|integer within read length|
-|min_len|end trimming|minimum read length to retain for end-trimming and adapter removal|integer > 0|
-|q_min|quality filtering|Q score minimum (Phred value 0-40) applied to q_percent variable|integer between 0 and 40|
-|q_percent|quality filtering|percentage of reads >= q_min Q scores|number between 0 and 100|
-|adapter_match|adapter removal|number of base matches to identify adapters (requires 'adapters.txt')|integer (recommend 12)|
-|p64|general|defaults to phred+33, use True if using phred+64 qscores|True or False|
-|compress|general|gzip compress files after each step in the pipeline to save space (defaults to True)|True or False|
+**General parameters**
+
+|Variable      |Default       |Usage         |Input         |required/Optional|
+|:-------------|:-------------|:-------------|:-------------|:----------------|
+|threads|2|choose maximum number of subprocesses that can run simultaneously|integer|optional|
+|walkaway|True|run from beginning to end without pausing at qc steps |True or False|optional|
+|cluster|False|run on compute cluster node (default: slurm) or workstation|True or False|optional|
+|samples_alt_dir|False|input files stored in different different from project directory|True or False|optional|
+|rm_transit|True|remove each transitional file folder to save space|True or False|optional|
+
+
+
+**Input files**
+
+|Variable      |Default       |Usage         |Input         |required/Optional|
+|:-------------|:-------------|:-------------|:-------------|:----------------|
+|lib1_R1|na|input fastq file name for R1/P5/forward reads|string|required|
+|lib1_R2|na|input fastq file name for R2/P7/forward reads|string|optional|
+|lib1_bc|na|name of file containing barcodes|string|required|
+|lib2_R1|na|additional input fastq file name for R1/P5/forward reads|string|required|
+|lib2_R2|na|additional input fastq file name for R2/P7/forward reads|string|optional|
+|lib2_bc|na|additional name of file containing barcodes|string|required|
+
+
+**Tool Parameters**
+
+|Variable      |Default       |Usage         |Input         |required/Optional|
+|:-------------|:-------------|:-------------|:-------------|:----------------|
+|front_trim|0|numberr of bases in buffer sequence to trim|integer|optional|
+|mismatch|1|number of mismatches (hamming distance) allowed in barcodes|integer|optional|
+|R1_motif|na|motif filtering for R1/P5/forward reads|string or list of comma-separated strings|optional|
+|R2_motif|na|motif filtering for R2/P7/forward reads|string or list of comma-separated strings|optional|
+|end_score|20|end-trim once entire window >= this Q score|integer|optional|
+|window|10|size of window to test for >= end_trim|integer|optional|
+|min_len|64|minimum read length to retain after end-trimming and adapter removal|integer|optional|
+|adapter_match|12|number of base matches to identify adapters|integer|optional|
+|q_min|20|Q score minimum (Phred value 0-40) applied to q_percent variable|integer|optional|
+|q_percent|80|percentage of basses in read >= q_min Q scores|integer|optional|
+
+**Visualizations**
+
+|Variable      |Default       |Usage         |Input         |required/Optional|
+|:-------------|:-------------|:-------------|:-------------|:----------------|
+|QC_all|na||summary and/or full|optional|
+|QC_demultiplexed|na||summary and/or full|optional|
+|QC_motif_validated|na||summary and/or full|optional|
+|QC_end_trimmed|na||summary and/or full|optional|
+|QC_adapter_removed|na||summary and/or full|optional|
+|QC_final|summary||summary and/or full|optional|
+
+
+**Note: na indicates that variable is user-defined or hard-coded/computed intuitively, as well as a function of ploidy.*
+
 
 
 An example configuration file may look like this:
 
-**conf.py**
+**config.sh**
 
 ```
-paired = True
-procs = 2
-alt_dir = '/home/user/project'
-walkaway = False
-rm_transit = True
-initial_qc = False
-all_qc = 'summary'
-front_trim = 6
-mismatch = 1
-R1_bases_ls = ['TCC', 'TCT']
-R2_bases_ls = ['TCC', 'TCT']
-non_genomic = 1
-end_score = 30
-window = 10
-min_len = 50
-q_min = 30
-q_percent = 95
+**General parameters**
+
+|Variable      |Default       |Usage         |Input         |required/Optional|
+|:-------------|:-------------|:-------------|:-------------|:----------------|
+|threads|na|choose maximum number of subprocesses that can run simultaneously|integer|optional|
+|walkaway|True|run from beginning to end without pausing at qc steps |True or False|optional|
+|cluster|False|run on compute cluster node (default: slurm) or workstation|True or False|optional|
+|samples_alt_dir|False|input files stored in different different from project directory|True or False|optional|
+|rm_transit|True|remove each transitional file folder to save space|True or False|optional|
+
+
+
+**Input files**
+
+|Variable      |Default       |Usage         |Input         |required/Optional|
+|:-------------|:-------------|:-------------|:-------------|:----------------|
+|lib1_R1|na|input fastq file name for R1/P5/forward reads|string|required|
+|lib1_R2|na|input fastq file name for R2/P7/forward reads|string|optional|
+|lib1_bc|na|name of file containing barcodes|string|required|
+|lib2_R1|na|additional input fastq file name for R1/P5/forward reads|string|required|
+|lib2_R2|na|additional input fastq file name for R2/P7/forward reads|string|optional|
+|lib2_bc|na|additional name of file containing barcodes|string|required|
+
+
+**Tool Parameters**
+
+|Variable      |Default       |Usage         |Input         |required/Optional|
+|:-------------|:-------------|:-------------|:-------------|:----------------|
+|front_trim|0|numberr of bases in buffer sequence to trim|integer|optional|
+|mismatch|1|number of mismatches (hamming distance) allowed in barcodes|integer|optional|
+|R1_motif|na|motif filtering for R1/P5/forward reads|string or list of comma-separated strings|optional|
+|R2_motif|na|motif filtering for R2/P7/forward reads|string or list of comma-separated strings|optional|
+|end_score|20|end-trim once entire window >= this Q score|integer|optional|
+|window|10|size of window to test for >= end_trim|integer|optional|
+|min_len|64|minimum read length to retain after end-trimming and adapter removal|integer|optional|
+|adapter_match|12|number of base matches to identify adapters|integer|optional|
+|q_min|20|Q score minimum (Phred value 0-40) applied to q_percent variable|integer|optional|
+|q_percent|80|percentage of basses in read >= q_min Q scores|integer|optional|
+
+**Visualizations**
+
+|Variable      |Default       |Usage         |Input         |required/Optional|
+|:-------------|:-------------|:-------------|:-------------|:----------------|
+|QC_all|na||summary and/or full|optional|
+|QC_demultiplexed|na||summary and/or full|optional|
+|QC_motif_validated|na||summary and/or full|optional|
+|QC_end_trimmed|na||summary and/or full|optional|
+|QC_adapter_removed|na||summary and/or full|optional|
+|QC_final|summary||summary and/or full|optional|
 ```
-*In the above example, a paired library will be expected (**paired = True**) and the maximum number of subprocesses spawned will be 2 (**procs = 2**).  The empty directory '/home/user/project' will contain all resulting filtered data (**alt_dir = '/home/user/project'**). The pipeline will pause after relevant steps (**walkaway = False**) so users can view qc plots and have the option of modifying or bypassing the step. To save disk space, transitional directories will be removed (**rm_transit = True**) and only the final filtered data and any qc stats created in the pipeline will remain. No qc statistics will be created on the raw data in this example (**initial_qc = False**), but for all subsequent steps a summarized version will be created that collapses all R1, R2, and/or single-end reads to provide a helpful overview of the results of a given filtering step (**all_qc = 'summary'**).*
 
-*A buffer sequence of length 6 (**front_trim = 6**) will be trimmed before demultiplexing, which will allow mismatch at a hamming distance of 1 (**mismatch = 1**).*
+*In the above example, the maximum number of subprocesses spawned will be 24 (**threads = 24**).  The pipeline will pause after relevant steps (**walkaway = False**) so users can view qc plots and have the option of modifying or bypassing the step. To save disk space, transitional directories will be removed (**rm_transit = True**) and only the final filtered data and any qc stats created in the pipeline will remain. Regardless of if walkaway if True or False, pipeline will ask if initial_qc should be generated.*
 
-*In this case, samples were double-digested with AluI and HaeIII and A-tailed before adapter ligation (**R1_bases_ls = ['TCC', 'TCT']** and **R2_bases_ls = ['TCC', 'TCT']**). Only reads containing these motifs will pass to subsequent steps. As the T complement from A-tailing introduces an artificial residue not present in the specimen sequenced, it can simultaneously be removed alongside motif detection (**non_genomic = 1**).*
+*A buffer sequence of length 6 (**front_trim = 6**) will be trimmed before demultiplexing, which will allow mismatch at a hamming distance of 1 (**mismatch=1**). For variable length barcodes, the same number of proximal bases (based on the minimum barcode length) are used for demultiplexing, while the additional distal bases in barcodes are trimmed off.*
 
-*Automatic end-trimming will be performed based on Q score. Here, groups of bases are considered within a moving window of 10 bases at a time (**window = 10**) until that window consists only of the desired Q score at or above 30 (**end_score = 30**). It is at this point that the read is trimmed. Reads that are less than 50 bp will be discarded (**min_len = 50**)*
+*In this case, samples were double-digested with AluI and HaeIII and A-tailed before adapter ligation (**R1_motif=TCC,TCT** and **R2_motif=TCC,TCT**). Only reads containing these motifs will pass to subsequent steps. For A-tailed libraries, an A can be appended to the R1_motif and R2_motif strings.*
 
-*Only reads that have a Q score of 30 (**q_min = 30**) acrosss at least 95 percent of the read (**q_percent = 95**) will pass to subsequent steps. If a R1 read or an R2 read passes while its partner fails, it will be placed into a single-end read subfolder and the failing read will be discarded.*
+*Automatic end-trimming will be performed based on Q score. Here, groups of bases are considered within a moving window of 10 bases at a time (**window=10**) until that window consists only of the desired Q score at or above 20 (**end_score=20**). It is at this point that the read is trimmed. Reads that are less than 64 bp will be discarded (**min_len=64**)*
+
+*Only reads that have a Q score of 20 (**q_min=20**) acrosss at least 95 percent of the read (**q_percent=80**) will pass to subsequent steps. If a R1 read or an R2 read passes while its partner fails, it will be placed into a single-end read subfolder and the failing read will be discarded.*
 
 
 Alternatively, a configuration file may only need to include necessary components for a run:
@@ -147,13 +211,14 @@ Alternatively, a configuration file may only need to include necessary component
 **conf.py**
 
 ```
-paired = True
-procs = 8
-mismatch = 1
-q_min = 30
-q_percent = 95
+#Input_files
+###################################################
+lib1_R1=test1_R1.fastq.gz
+lib1_bc=barcodes_lib1.txt
 ```
-*This example will demultiplex paired-end data using a mismatch value of one followed by a threshold filter for reads comprised of base-calls at or above 30 across at least 95 percent of the read. A maximum of 8 subprocesses will be called.*
+*Since most of the parameters are hard-coded in an intuitive manner, by specifying only the fastq file name (at least single-end data) and associated barcode (only required for demultiplexing), the pipelines determines the other parameters as some stated below:<br />
+- threads: computes available number of cores (n) and uses n-2 threads
+- defaults: walkaway=True, cluster=False, samples_alt_dir=False, rm_transit=True, front_trim=0, mismatch=1, no motif filtering, end_score=20, min_len=64, adapter_match=12, q_min=20, q_percent=80, only summary final QC, and initial QC will be determined based on a prompt before submitting job.
 
 ***
 
