@@ -2,7 +2,6 @@
 
 A guide to using the individual tools in the ngsComposer pipeline
 
-See <a href="https://github.com/ryandkuster/composer/blob/master/README.md">main README page</a> for installation, pipeline usage, troubleshooting, and license information.
 
 # Contents
 - [Crinoid - QC stats](#crinoid)
@@ -149,7 +148,7 @@ As with Krill, paired-end output files will indicate when pairing has been retai
 
 Example:
 ```bash
-$ python3 porifera.py -r1 1_R1.fastq -a1 adapters.txt -m 12 -k 8 -r 1 
+$ python3 porifera.py -r1 1_R1.fastq -a1 adapters.txt -m 12 -k 8 -r 1
 ```
 
 Example adapter file:
@@ -172,7 +171,7 @@ TAATGGCAAG
 GTGCCGCTTC
 CGGCAATGGA
 GCCGTAACCG
-AACCATTCTC 
+AACCATTCTC
 ```
 *Each of the above sample adapters is presented in 5' to 3' orientation and may have restriction motifs added if desired. Porifera.py creates all reverse-complements before alignment*
 

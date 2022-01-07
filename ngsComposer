@@ -1,0 +1,520 @@
+#!/bin/bash
+
+magenta=$'\e[1;35m'
+white=$'\e[0m'
+yellow=$'\e[1;33m'
+blue=$'\e[1;34m'
+# ngsComposer_dir=$(dirname "$0")
+# projdir=$1
+threads=""
+# relpath=$(pwd)
+
+ngsComposer_dir="$( cd -- "$(dirname "$0 ")" >/dev/null 2>&1 ; pwd -P )/"
+
+if [[ "$1" == "" ]]; then
+  echo -e "${white}\n\tUsage:\n\t\t./ngsComposer/ngsComposer\t\t<command>\n\n"
+  echo -e "${white}\n\tpipeline tools can be invoked as standalone tools folder:\n"
+  echo -e "${white}\n\t\tcrinoid.py  - qc stats\n"
+  echo -e "${white}\n\t\tscallop.py  - trimming\n"
+  echo -e "${white}\n\t\tanemone.py  - demultiplexing\n"
+  echo -e "${white}\n\t\trotifer.py  - motif detection\n"
+  echo -e "${white}\n\t\tporifera.py - adapter removal\n"
+  echo -e "${white}\n\t\tkrill.py    - quality filtering\n"
+  echo -e "${white}\tproj_dir\t\tspecify absolute or relative path to project directory\n\n"
+  echo -e "${yellow}\tempirical base-call filtering pipeline for preprocessing fastq libraries\n"
+  echo -e "${white}\tCommand:"
+  echo -e "${white}\t\t--version, -v\t\tprint software version"
+  echo -e "${white}\t\t--help, -h\t\tprint help message"
+  echo -e "${white}\t\tinstall\t\t\tsoftware dependencies"
+  exit 0
+fi
+if [[ "$1" == "-v" || "$1" == "--version" ]]; then
+  echo -e "${white}\n\tProgram:	ngsComposer"
+  echo -e "${white}\tVersion:	1.0"
+  echo -e "${white}\tDescription:	empirical base-call filtering pipeline for preprocessing fastq libraries"
+  echo -e "${white}\tContact:	Bode Olukolu <bolukolu@utk.edu>\n"
+  echo -e "${white}\tmore info: https://github.com/bodeolukolu/ngscomposer for full usage notes\n"
+  exit 0
+fi
+if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+  echo -e "${white}\n\tUsage:\n\t\t./ngsComposer/ngsComposer\t\t<command>\n\n"
+  echo -e "${white}\n\tpipeline tools can be invoked as standalone tools folder:\n"
+  echo -e "${white}\n\t\tcrinoid.py  - qc stats\n"
+  echo -e "${white}\n\t\tscallop.py  - trimming\n"
+  echo -e "${white}\n\t\tanemone.py  - demultiplexing\n"
+  echo -e "${white}\n\t\trotifer.py  - motif detection\n"
+  echo -e "${white}\n\t\tporifera.py - adapter removal\n"
+  echo -e "${white}\n\t\tkrill.py    - quality filtering\n"
+  echo -e "${white}\tproj_dir\t\tspecify absolute or relative path to project directory\n\n"
+  echo -e "${yellow}\tempirical base-call filtering pipeline for preprocessing fastq libraries\n"
+  echo -e "${white}\tCommand:"
+  echo -e "${white}\t\t--version, -v\t\tprint software version"
+  echo -e "${white}\t\t--help, -h\t\tprint help message"
+  echo -e "${white}\t\tinstall\t\t\tsoftware dependencies"
+  exit 0
+fi
+if [[ "$1" == "install" ]]; then
+  mkdir -p $ngsComposer_dir/tools
+  cd $ngsComposer_dir/tools
+  bash $ngsComposer_dir/scripts/install.sh
+  wait; exit 0
+fi
+
+projdir="$( cd -- "$(dirname "$1 ")" >/dev/null 2>&1 ; pwd -P )/"
+if [[ ! -d "$ngsComposer_dir/tools" ]]; then
+  mkdir -p $ngsComposer_dir/tools
+  cd $ngsComposer_dir/tools
+  bash $ngsComposer_dir/scripts/install.sh
+fi
+if [[ -d "$ngsComposer_dir/tools" ]]; then
+  cd $ngsComposer_dir/tools
+  bash $ngsComposer_dir/scripts/install.sh
+fi
+
+
+# if [ "${ngsComposer_dir:0:1}" = "." ]; then
+#   if [ "${ngsComposer_dir:0:15}" = "../../../../../" ]; then
+#     ngsComposer_dir="${relpath%/*/*/*/*/*}${ngsComposer_dir//*..}"
+#   fi
+#   if [ "${ngsComposer_dir:0:12}" = "../../../../" ]; then
+#     ngsComposer_dir="${relpath%/*/*/*/*}${ngsComposer_dir//*..}"
+#   fi
+#   if [ "${ngsComposer_dir:0:9}" = "../../../" ]; then
+#     ngsComposer_dir="${relpath%/*/*/*}${ngsComposer_dir//*..}"
+#   fi
+#   if [ "${ngsComposer_dir:0:6}" = "../../" ]; then
+#     ngsComposer_dir="${relpath%/*/*}${ngsComposer_dir//*..}"
+#   fi
+#   if [ "${ngsComposer_dir:0:3}" = "../" ]; then
+#     ngsComposer_dir="${relpath%/*}${ngsComposer_dir//*..}"
+#   fi
+#   if [ "${ngsComposer_dir:0:2}" != ".." ]; then
+#     if [ "${ngsComposer_dir:0:1}" = "." ]; then
+#       ngsComposer_dir="${relpath}${ngsComposer_dir:1}"
+#     fi
+#   fi
+# fi
+# if [ "${ngsComposer_dir: -1}" != "/" ]; then
+#   ngsComposer_dir="${ngsComposer_dir}/"
+# fi
+#
+# if [ "${projdir:0:1}" = "." ]; then
+#   if [ "${projdir:0:15}" = "../../../../../" ]; then
+#     projdir="${relpath%/*/*/*/*/*}${projdir//*..}"
+#   fi
+#   if [ "${projdir:0:12}" = "../../../../" ]; then
+#     projdir="${relpath%/*/*/*/*}${projdir//*..}"
+#   fi
+#   if [ "${projdir:0:9}" = "../../../" ]; then
+#     projdir="${relpath%/*/*/*}${projdir//*..}"
+#   fi
+#   if [ "${projdir:0:6}" = "../../" ]; then
+#     projdir="{relpath%/*/*}${projdir//*..}"
+#   fi
+#   if [ "${projdir:0:3}" = "../" ]; then
+#     projdir="${relpath%/*}${projdir//*..}"
+#   fi
+#   if [ "${projdir:0:2}" = "./" ]; then
+#     projdir="${relpath}${projdir:1}"
+#   fi
+#   if [ "${projdir}" = . ]; then
+#     projdir="${relpath}"
+#   fi
+# fi
+# if [ "${projdir:-1}" != "/" ]; then
+#   projdir="${projdir}/"
+# fi
+
+####################################################################################################################
+####################################################################################################################
+####################################################################################################################
+
+cd $projdir
+echo -e "${white}\n##################################################################################\n"
+echo -e "${yellow}\t- Program:	ngsComposer"
+echo -e "${yellow}\t- Version:	1.0"
+echo -e "${yellow}\t- Description:	empirical base-call filtering pipeline for preprocessing fastq libraries"
+echo -e "${yellow}\t- Contact:	Bode Olukolu <bolukolu@utk.edu> ${white}"
+echo -e "${yellow}\t- more info: https://github.com/bodeolukolu/ngscomposer for full usage notes ${white}"
+echo -e "${white}\n##################################################################################\n"
+
+
+f=($(find . -maxdepth 1 -type f | wc -l))
+if [[ "$f" < 3 ]]; then
+  echo -e "${magenta}- expecting at least 6 files ${white}"
+  echo -e "${magenta}- 1: at least one library, i.e. single-end or paired-end fastq file(s)${white}"
+  echo -e "${magenta}- 2: file containing barcode sequences and associated sample id${white}"
+  echo -e "${magenta}- 3: config.sh file defining parameters${white}"
+  exit 1
+  echo -e "${white}\n\n##############################################################################"
+fi
+
+cd $projdir
+if [[ -f adapters.R1.txt || -f adapters_R1.txt ]]; then
+  :
+else
+  echo -e "${magenta}- file containing forward/R1 adapter sequence(s) is missing ${white}\n"
+  echo -e "${magenta}- provide <adapter.R1.txt> if you are performing adapter removal ${white}\n"
+fi
+if [[ -f adapters.R2.txt || -f adapters_R2.txt ]]; then
+  :
+else
+  echo -e "${magenta}- file containing forward/R2 adapter sequence(s) is missing ${white}\n"
+  echo -e "${magenta}- provide <adapter.R2.txt> if you are performing adapter removal ${white}\n"
+fi
+
+
+####################################################################################################################
+####################################################################################################################
+####################################################################################################################
+cd $projdir
+samples_alt_dir="$(grep samples_alt_dir config.sh)"
+samples_alt_dir=${samples_alt_dir//*=}
+if [[ -z $samples_alt_dir || $samples_alt_dir =~ false ]]; then
+	:
+else
+	if [ -d ./samples ] && [ "$(ls -A ./samples)" ]; then
+    if [[ $(ls -lh | grep samples) =~ '->' || $samples_alt_dir =~ false ]]; then
+      :
+    else
+  		echo -e "${magenta}- samples already exist in ./project_directory/samples/ ${white}\n"
+  		echo -e "${magenta}- cannot use both <alternate_samples_directory> and <./project_directory/samples/ ${white}\n"
+  		echo -e "${magenta}- ngsComposer will quit in 5 seconds ${white}\n"
+  		sleep 5; exit 0
+    fi
+	fi
+	if [ ! -d ./samples ]; then
+		ln -s $samples_alt_dir .
+	fi
+	if [ -d ./samples ] && [ -z "$(ls -A ./samples)" ]; then
+		rmdir samples
+		ln -s $samples_alt_dir .
+	fi
+fi
+
+
+# Initial questions before running walkaway
+cd $projdir
+
+free=$(df . | awk 'NR==2{print $4}')
+required=$(du -s . | awk '{print $1}')
+required=$((required * 2))
+if [[ "$free" -lt "$required" ]]; then
+	echo -e "${magenta}- You might not have enough disk space. Free: $((free/1000000))G; Required(approx. 1.2x the size of fastq files): $((required/1000000))G  ${white}\n"
+	echo -e "${magenta}- Do you want to continue running ngsComposer? ${white}"
+	read -p "- y(YES) or n(NO)? " -n 1 -r
+	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+		printf '\n'
+		echo -e "${magenta}- Exiting ngsComposer ${white}\n"
+		sleep 5 && exit 1
+	fi
+fi
+
+test_bc=$(grep '^lib' config.sh | grep '_bc' | awk '{gsub(/=/,"\t"); print $2}')
+for i in $test_bc; do
+  if [[ ! -f "$i" ]]; then
+    echo -e "${magenta}- one or more of files containing barcodes and corresponding sample ID are missing in project directory ${white}"
+    echo -e "${magenta}- Exiting ngsComposer ${white}\n"
+    sleep 5 && exit 1
+  fi
+done
+
+cd samples
+test_fq=$(grep '^lib' config.sh | grep -v '_bc' | awk '{gsub(/=/,"\t"); print $2}')
+for i in $test_fq; do
+  if [[ ! -f "$i" ]]; then
+    echo -e "${magenta}- one or more of input fastq files are missing in samples folder ${white}"
+    echo -e "${magenta}- Exiting ngsComposer ${white}\n"
+    sleep 5 && exit 1
+  fi
+done
+
+
+####################################################################################################################
+####################################################################################################################
+####################################################################################################################
+
+main() {
+string="${ngsComposer_dir}/scripts/ngsComposer_internal_parameters.sh"
+string2=${string//'//'/'/'}
+
+cd $projdir
+
+awk '{gsub(/ /,""); print}' config.sh > unixformat.sh
+mv unixformat.sh config.sh
+awk '{ sub("\r$",""); print}' config.sh > unixformat.sh
+mv unixformat.sh config.sh
+string3=${ngsComposer_dir}/scripts/ngsComposer.sh
+
+cd $projdir
+printf "#""!""/bin/bash \n\n" > header.txt
+printf "ngsComposer_dir=${ngsComposer_dir}\n" > fetchdir.txt
+printf "projdir=${projdir}" >> fetchdir.txt
+
+string="$(grep walkaway config.sh)"
+string=${string//*=}
+cluster="$(grep cluster config.sh)"
+cluster=${cluster//*=}
+thread_node="$(grep ^threads config.sh)"
+thread_node=${thread_node//*=}
+
+if [ -z "$string" ]; then
+ string=true
+fi
+if [ "$cluster" == false ]; then
+ unset cluster
+fi
+
+
+if [[ "$string" == false ]]; then
+  echo -e "${magenta}- ngsComposer will run in walk-through mode\n\n############################################################################## ${white}"
+  if [ -z "$thread_node" ]; then
+    echo -e "${magenta}- ngsComposer will use (total processors/cores)-2 ${white}"
+    echo -e "${magenta}- Quit (ctrl + c), else ngsComposer will continue in 10 seconds ${white}"
+    sleep 5
+  fi
+
+  cat header.txt config.sh fetchdir.txt $string2 $string3 | awk '{ sub("\r$",""); print}' > ngsComposer_run.sh
+  rm header.txt fetchdir.txt
+  echo -e "${magenta}- ngsComposer is ready to submit job ${white}"
+  echo -e "${magenta}- Do you want to continue? ${white}"
+  read -p "- y(YES) or n(NO)? " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo -e "${magenta}\n- shell script will be saved to ${projdir}ngsComposer_run.sh ${white}\n"
+    exit 1
+  else
+    bash ${projdir}ngsComposer_run.sh
+  fi
+fi
+
+
+
+
+
+if [[ "$string" == true ]]; then
+if [ -z $cluster ]; then
+  echo -e "${magenta}- ngsComposer will run in walkaway mode\n ${white}"
+  echo -e "${white}##############################################################################\n ${white}"
+  if [ -z "$thread_node" ]; then
+    echo -e "${magenta}- ngsComposer will use (total processors/cores)-2 ${white}"
+    echo -e "${magenta}- Quit (ctrl + c), else ngsComposer will continue in 10 seconds ${white}"
+    sleep 5
+  fi
+
+  echo -e "${magenta}- Do you want to perform initial QC? ${white}"
+  read -p "- y(YES) or n(NO) " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  	printf '\n'
+	printf "initial_qc=0 \n" > steps.txt
+  	echo -e "${magenta}- skipping intial QC ${white}"
+    echo -e "${white}\n##############################################################################\n"
+  else
+    printf '\n'
+    printf "initial_qc=1 \n" > steps.txt
+    echo -e "${white}\n##############################################################################\n"
+  fi
+
+  echo -e "${magenta}- Do you want to perform demultiplexing? ${white}"
+  read -p "- y(YES) or n(NO) " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  	printf '\n'
+	printf "demultiplex=0 \n" >> steps.txt
+  	echo -e "${magenta}- skipping demultiplexing ${white}"
+    echo -e "${white}\n##############################################################################\n"
+  else
+    printf '\n'
+    printf "demultiplex=1 \n" >> steps.txt
+    echo -e "${white}\n##############################################################################\n"
+  fi
+
+  echo -e "${magenta}- Do you want to perform filtering based on known motif validation? ${white}"
+  read -p "- y(YES) or n(NO) " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  	printf '\n'
+	printf "motif_validation=0 \n" >> steps.txt
+  	echo -e "${magenta}- skipping known motif validation ${white}"
+    echo -e "${white}\n##############################################################################\n"
+  else
+    printf '\n'
+    printf "motif_validation=1 \n" >> steps.txt
+    echo -e "${white}\n##############################################################################\n"
+  fi
+
+  echo -e "${magenta}- Do you want to perform end-trimming of reads? ${white}"
+  read -p "- y(YES) or n(NO) " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  	printf '\n'
+	printf "end_trim=0 \n" >> steps.txt
+  	echo -e "${magenta}- skipping end-trimming of reads ${white}"
+    echo -e "${white}\n##############################################################################\n"
+  else
+    printf '\n'
+    printf "end_trim=1 \n" >> steps.txt
+    echo -e "${white}\n##############################################################################\n"
+  fi
+
+  echo -e "${magenta}- Do you want to perform adapter removal? ${white}"
+  read -p "- y(YES) or n(NO) " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  	printf '\n'
+	printf "adapter_remove=0 \n" >> steps.txt
+  	echo -e "${magenta}- skipping adapter removal ${white}"
+    echo -e "${white}\n##############################################################################\n"
+  else
+    printf '\n'
+    printf "adapter_remove=1 \n" >> steps.txt
+    echo -e "${white}\n##############################################################################\n"
+  fi
+
+  echo -e "${magenta}- Do you want to perform read quality-filtering? ${white}"
+  read -p "- y(YES) or n(NO) " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    printf '\n'
+  printf "quality_filter=0 \n" >> steps.txt
+    echo -e "${magenta}- skipping read quality-filtering ${white}"
+    echo -e "${white}\n##############################################################################\n"
+  else
+    printf '\n'
+    printf "quality_filter=1 \n" >> steps.txt
+    echo -e "${white}\n##############################################################################\n"
+  fi
+
+  printf "#""!""/bin/bash \n\n" > header.txt
+  printf "walkaway=true \n\n" > walkaway.txt
+  printf "ngsComposer_dir=${ngsComposer_dir}\n" > fetchdir.txt
+  printf "projdir=${projdir}" >> fetchdir.txt
+  cat header.txt steps.txt config.sh walkaway.txt fetchdir.txt $string2 $string3 | awk '{ sub("\r$",""); print}' > ngsComposer_run.sh
+  rm header.txt walkaway.txt fetchdir.txt steps.txt
+
+  echo -e "${magenta}- ngsComposer is ready to submit job ${white}"
+  echo -e "${magenta}- Do you want to continue? ${white}"
+  read -p "- y(YES) or n(NO)? " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    echo -e "${magenta}\n- shell script will be saved to ${projdir}ngsComposer_run.sh ${white}\n"
+    exit 1
+  else
+    nohup bash ${projdir}ngsComposer_run.sh > terminal.out 2>&1 &
+  fi
+fi
+fi
+
+
+
+
+
+if [[ "$string" == true ]]; then
+if [[ "$cluster" == true ]]; then
+  if [ -z "$thread_node" ]; then
+    echo -e "${magenta}- Please provide number of threads in config.sh (for cluster node) ${white}"
+    echo -e "${magenta}- ngsComposer will quit ${white}"
+    sleep 2
+    exit 1
+  fi
+  echo -e "${magenta}- ngsComposer will run in walkaway mode\n ${white}"
+  echo -e "${white}##############################################################################\n ${white}"
+
+  echo -e "${magenta}- Do you want to perform initial QC? ${white}"
+  read -p "- y(YES) or n(NO) " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  	printf '\n'
+	printf "initial_qc=0 \n" > steps.txt
+  	echo -e "${magenta}- skipping intial QC ${white}"
+    echo -e "${white}\n##############################################################################\n"
+  else
+    printf '\n'
+    printf "initial_qc=1 \n" > steps.txt
+    echo -e "${white}\n##############################################################################\n"
+  fi
+
+  echo -e "${magenta}- Do you want to perform demultiplexing? ${white}"
+  read -p "- y(YES) or n(NO) " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  	printf '\n'
+	printf "demultiplex=0 \n" >> steps.txt
+  	echo -e "${magenta}- skipping demultiplexing ${white}"
+    echo -e "${white}\n##############################################################################\n"
+  else
+    printf '\n'
+    printf "demultiplex=1 \n" >> steps.txt
+    echo -e "${white}\n##############################################################################\n"
+  fi
+
+  echo -e "${magenta}- Do you want to perform filtering based on known motif validation? ${white}"
+  read -p "- y(YES) or n(NO) " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  	printf '\n'
+	printf "motif_validation=0 \n" >> steps.txt
+  	echo -e "${magenta}- skipping known motif validation ${white}"
+    echo -e "${white}\n##############################################################################\n"
+  else
+    printf '\n'
+    printf "motif_validation=1 \n" >> steps.txt
+    echo -e "${white}\n##############################################################################\n"
+  fi
+
+  echo -e "${magenta}- Do you want to perform end-trimming of reads? ${white}"
+  read -p "- y(YES) or n(NO) " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  	printf '\n'
+	printf "end_trim=0 \n" >> steps.txt
+  	echo -e "${magenta}- skipping end-trimming of reads ${white}"
+    echo -e "${white}\n##############################################################################\n"
+  else
+    printf '\n'
+    printf "end_trim=1 \n" >> steps.txt
+    echo -e "${white}\n##############################################################################\n"
+  fi
+
+  echo -e "${magenta}- Do you want to perform adapter removal? ${white}"
+  read -p "- y(YES) or n(NO) " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+  	printf '\n'
+	printf "adapter_remove=0 \n" >> steps.txt
+  	echo -e "${magenta}- skipping adapter removal ${white}"
+    echo -e "${white}\n##############################################################################\n"
+  else
+    printf '\n'
+    printf "adapter_remove=1 \n" >> steps.txt
+    echo -e "${white}\n##############################################################################\n"
+  fi
+
+  echo -e "${magenta}- Do you want to perform read quality-filtering? ${white}"
+  read -p "- y(YES) or n(NO) " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    printf '\n'
+  printf "quality_filter=0 \n" >> steps.txt
+    echo -e "${magenta}- skipping read quality-filtering ${white}"
+    echo -e "${white}\n##############################################################################\n"
+  else
+    printf '\n'
+    printf "quality_filter=1 \n" >> steps.txt
+    echo -e "${white}\n##############################################################################\n"
+  fi
+
+  printf "#""!""/bin/bash \n#SBATCH -c ${thread_node} \n\n" > cluster_header.sh
+  printf "walkaway=true \n\n" > walkaway.txt
+  cat cluster_header.sh steps.txt config.sh walkaway.txt fetchdir.txt $string2 $string3 | awk '{ sub("\r$",""); print}' > ngsComposer_run.sh
+  rm fetchdir.txt cluster_header.sh header.txt steps.txt walkaway.txt
+  slurm_check=$(sbatch --version)
+  if [[ $slurm_check == slurm* ]]; then
+    echo -e "${magenta}- ngsComposer is ready to submit job ${white}"
+    echo -e "${magenta}- Do you want to continue? ${white}"
+    read -p "- y(YES) or n(NO)? " -n 1 -r
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+      echo -e "${magenta}\n- shell script will be saved to ${projdir}ngsComposer_run.sh ${white}\n"
+      exit 1
+    else
+      sbatch ${projdir}ngsComposer_run.sh
+    fi
+  else
+    echo -e "${magenta}- Cluster manager not SLURM, revise batch file header in ${projdir}ngsComposer_run.sh to for cluster manager syntax ${white}"
+    echo -e "${magenta}- Revise batch file header in ${projdir}ngsComposer_run.sh for your cluster manager ${white}"
+  fi
+fi
+fi
+}
+cd $projdir
+time main
+
+echo -e "${magenta}- For jobs running in background, monitor progress in terminal.out or slurm-xxxxxx.out (slurm cluster manager) ${white}"
+echo -e "${magenta}- The log.out file can help with troubleshooting and when reporting a bug ${white}"

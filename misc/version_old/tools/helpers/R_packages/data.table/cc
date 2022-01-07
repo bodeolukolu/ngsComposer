@@ -1,0 +1,2 @@
+CC=gcc -std=gnu99
+CFLAGS=-g -O2 -fdebug-prefix-map=/build/r-base-tbZjLv/r-base-4.1.0=. -fstack-protector-strong -Wformat -Werror=format-security -Wdate-time -D_FORTIFY_SOURCE=2 -g
