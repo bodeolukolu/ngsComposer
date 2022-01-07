@@ -174,5 +174,3 @@ GCCGTAACCG
 AACCATTCTC
 ```
 *Each of the above sample adapters is presented in 5' to 3' orientation and may have restriction motifs added if desired. Porifera.py creates all reverse-complements before alignment*
-
-<a href="https://imgur.com/uQ0kCRk"><img src="https://i.imgur.com/uQ0kCRk.png" title="source: imgur.com" /></a>
