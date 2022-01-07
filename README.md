@@ -246,7 +246,8 @@ GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCTAACCATTCTC
 *When paired end data is used, as above, 'adapters.R1.txt' and 'adapters.R2.txt' must be provided. Adapters are tested for the inclusion of barcodes and only those combinations of R1/R2 barcodes leading to a given sample will be used to search for adapters quickly and with a lower false positive rate.*
 
 ### Standalone
-All tools available in the ngsComposer pipeline can be called individually from the command line. Please see the <a href="https://github.com/bodeolukolu/ngsComposer/blob/master/tools/ReadMe.md">ngsComposer Standalone Tools page</a> for usage.
+All tools available in the ngsComposer pipeline can be called individually from the command line. Please see the <a href="https://github.com/bodeolukolu/ngsComposer/blob/master/tools/README.md">ngsComposer Standalone Tools page</a> for usage.
+
 
 ## Troubleshooting
 
@@ -310,5 +311,3 @@ Versioning will follow major.minor.patch <a href="https://semver.org">semantic v
 ## License
 
 <a href="https://github.com/bodeolukolu/ngsComposer/blob/master/misc/LICENSE">Apache License Version 2.0</a>
-
-<a><img src="https://i.imgur.com/uQ0kCRk.png" title="source: imgur.com" /></a>
