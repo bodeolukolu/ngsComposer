@@ -1,5 +1,6 @@
 # INITIAL DEVELOPMENT RELEASE
-If you find any issues or have suggestions to improve ngsComposer or its documentation, please contact bolukolu@utk.edu.
+
+For questions, bugs, and suggestions, please contact bolukolu@utk.edu.
 
 <p align="right">
 <img src="https://github.com/bodeolukolu/ngsComposer/blob/master/misc/logo_ngsComposer.png">
