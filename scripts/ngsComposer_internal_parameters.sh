@@ -31,7 +31,7 @@ fi
 
 pythonout=$(python --version | head -n 3)
 if [ -z "$pythonout" ];then
-	module add python
+	module add python3
 	python --version | head -n 3
 fi
 pythonout=$(python --version | head -n 3)

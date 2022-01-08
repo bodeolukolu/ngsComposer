@@ -58,14 +58,14 @@ if [[ "$QC_all" =~ summary && "$QC_all" =~ full ]]; then
 	QC_adapter_removed=summary,full
 	QC_final=summary,full
 fi
-if [[ "$QC_all" =~ summary ]]; then
+if [[ "$QC_all" == summary ]]; then
 	QC_demultiplexed=summary
 	QC_motif_validated=summary
 	QC_end_trimmed=summary
 	QC_adapter_removed=summary
 	QC_final=summary
 fi
-if [[ "$QC_all" =~ full ]]; then
+if [[ "$QC_all" == full ]]; then
 	QC_demultiplexed=full
 	QC_motif_validated=full
 	QC_end_trimmed=full
@@ -262,29 +262,24 @@ main_demultiplex() {
 			else
 				python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
 			fi
-			rm trimmed_se* &&
+			rm trimmed_se*
+			wait
 			for sid in $(ls *.R1.fastq | grep -v unknown); do
 				fringelen=$( awk -F'\t' -v sampid=${sid%.R1.fastq} '$1 == sampid' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk -F'\t' '{print $2}' )
 				if [[ "$fringelen" -gt 0 ]]; then
-					python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid} &&
-					gzip ${sid}
-					wait
-				else
-					gzip ${sid}
-					wait
+					python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid}
 				fi
+				$gzip ${sid}
+				wait
 			done
 			if [[ "$test_lib_R2" != False ]]; then
 				for sid in $(ls *.R2.fastq | grep -v unknown); do
-					fringelen=$( awk -F'\t' -v sampid=${sid%.R2.fastq} '$1 == sampid' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk -F'\t' '{print $2}' )
+					fringelen=$( awk -F'\t' -v sampid=${sid%.R2.fastq} '$1 == sampid' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk -F'\t' '{print $3}' )
 					if [[ "$fringelen" -gt 0 ]]; then
-						python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid} &&
-						gzip ${sid}
-						wait
-					else
-						gzip ${sid}
-						wait
+						python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid}
 					fi
+					$gzip ${sid}
+					wait
 				done
 			fi
 			# Now combine fastq files with the same sample_ID
@@ -318,7 +313,7 @@ main_demultiplex() {
 	wait $PIDR1
 	wait $PIDR2
 	rm ./*chunk*/unknown.R1.fastq ./*chunk*/unknown.R2.fastq
-	cd unknown && gzip * && cd ../
+	cd unknown && $gzip * && cd ../
   wait
   samples_r1=$(ls ./*/*R1* | awk '{gsub(/\//,"\t"); print}' | awk '{print $3}' | sort | uniq | grep -v 'unknown')
   for f in $samples_r1; do (
