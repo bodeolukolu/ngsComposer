@@ -75,11 +75,13 @@ fi
 if [[ -z $QC_final ]]; then
 	QC_final=summary
 fi
+
+cd $projdir
+
 test_lib_R2=$(grep '^lib' config.sh | grep '_R2=' | awk '{gsub(/=/,"\t"); print $2}')
 if [[ -z "$test_lib_R2" ]]; then
 	test_lib_R2=False
 fi
-
 
 nthreads="$(grep threads config.sh)"
 nthreads=${nthreads//*=}
@@ -257,11 +259,13 @@ main_demultiplex() {
 			else
 				python3 $scallop -r1 ./R1_${ck}.fastq -f $front_trim && rm R1_${ck}.fastq
 			fi
+
 			if [[ "$test_lib_R2" != False ]]; then
 				python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -r2 ./trimmed_se.R2_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
 			else
 				python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
 			fi
+
 			rm trimmed_se*
 			wait
 			for sid in $(ls *.R1.fastq | grep -v unknown); do
