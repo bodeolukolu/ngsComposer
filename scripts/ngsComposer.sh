@@ -1157,7 +1157,7 @@ main_quality_filter() {
 			cd pe &&
 			$gzip *${fingz} && $gzip *${fingz%.R1.fastq}.R2.fastq &&
 			cd ../ &&
-			$gzip ${etm%.R1.fastq.gz}.R1.fastq && $gzip ${etm%.R1.fastq.gz}.R2.fastq &&
+			$gzip ${fin%.R1.fastq.gz}.R1.fastq && $gzip ${fin%.R1.fastq.gz}.R2.fastq &&
 			wait ) &
 			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 				wait
