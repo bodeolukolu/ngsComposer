@@ -138,8 +138,8 @@ As with Krill, paired-end output files will indicate when pairing has been retai
 |:--|:--|
 |-r1|the full or relative path to R1 fastq file|
 |-r2|the full or relative path to R2 fastq file|
-|-a1|the full or relative path to adapter sequences file. Provide R2/P7/reverse adapter sequence(s) here|
-|-a2|the full or relative path to adapter sequences file. Provide R1/P5/reverse adapter sequence(s) here|
+|-a1|the full or relative path to adapter sequences file. Provide R2/P7/reverse adapter sequence(s), i.e. adapters.R1.txt|
+|-a2|the full or relative path to adapter sequences file. Provide R1/P5/reverse adapter sequence(s), i.e. adapters.R2.txt|
 |-k|size of adapter k-mer used in search (default 8)|
 |-m|minimum matching value for to accept adapter match (integer, default 12)|
 |-r|walk adapter length by k-mer this many rounds before skipping non-matched read|
