@@ -465,8 +465,11 @@ main_motif_validation() {
 		for mot in ${projdir}/2_demultiplexed/pe/*.R1.fastq.gz; do (
 		    $gunzip $mot; $gunzip ${mot%.R1.fastq.gz}.R2.fastq.gz &&
 		    python3 $rotifer -r1 ${mot%.R1.fastq.gz}.R1.fastq -r2 ${mot%.R1.fastq.gz}.R2.fastq -m1 $motifR1 -m2 $motifR2 -o ./ &&
-				motgz=${mot#*/pe/}; motgz=${motgz%.gz}
-				$gzip *${motgz} && $gzip *${motgz%.R1.fastq}.R2.fastq ) &
+				motgz=${mot#*/pe/}; motgz=${motgz%.gz} &&
+				$gzip *${motgz} && $gzip *${motgz%.R1.fastq}.R2.fastq &&
+
+				$gzip ${mot%.R1.fastq.gz}.R1.fastq; $gzip ${mot%.R1.fastq.gz}.R2.fastq
+				wait ) &
 				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 					wait
 				fi
@@ -477,14 +480,19 @@ main_motif_validation() {
 		for mot in ${projdir}/2_demultiplexed/se/*.R1.fastq.gz; do (
 			$gunzip $mot &&
 			python3 $rotifer -r1 ${mot%.R1.fastq.gz}.R1.fastq -m1 $motifR1 -o ./ &&
-			motgz=${mot#*/se/}; motgz=${motgz%.gz}
-			$gzip *${motgz} ) &
+			motgz=${mot#*/se/}; motgz=${motgz%.gz} &&
+			$gzip *${motgz} &&
+
+			$gzip ${mot%.R1.fastq.gz}.R1.fastq
+			wait ) &
 			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 				wait
 			fi
 		done
 		wait
 	fi
+
+
 
 	mkdir -p pe se
 	for i in pe.*; do mv $i ./pe/${i#pe.}; done
@@ -677,8 +685,11 @@ main_end_trim() {
 			$gunzip $etm; $gunzip ${etm%.R1.fastq.gz}.R2.fastq.gz &&
 			python3 $scallop -r1 ${etm%.R1.fastq.gz}.R1.fastq -e $end_score -w $window -l $min_len -o ./pe/ &&
 			python3 $scallop -r1 ${etm%.R1.fastq.gz}.R2.fastq -e $end_score -w $window -l $min_len -o ./pe/ &&
-			etmgz=${etm#*/pe/}; etmgz=${etmgz%.gz}
-			$gzip ./pe/*${etmgz} && $gzip ./pe/*${etmgz%.R1.fastq}.R2.fastq ) &
+			etmgz=${etm#*/pe/}; etmgz=${etmgz%.gz} &&
+			$gzip ./pe/*${etmgz} && $gzip ./pe/*${etmgz%.R1.fastq}.R2.fastq &&
+
+			$gzip ${etm%.R1.fastq.gz}.R1.fastq; $gzip ${etm%.R1.fastq.gz}.R2.fastq &&
+			wait ) &
 			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 				wait
 			fi
@@ -689,8 +700,11 @@ main_end_trim() {
 		for etm in ${projdir}/3_motif_validated/se/*.fastq.gz; do (
 			$gunzip $etm &&
 			python3 $scallop -r1 ${etm%.gz} -e $end_score -w $window -l $min_len -o ./se/ &&
-			etmgz=${etm#*/se/}; etmgz=${etmgz%.gz}
-			$gzip ./se/*${etmgz} ) &
+			etmgz=${etm#*/se/}; etmgz=${etmgz%.gz} &&
+			$gzip ./se/*${etmgz} &&
+
+			$gzip ${etm%.gz} &&
+			wait ) &
 			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 				wait
 			fi
@@ -896,7 +910,10 @@ main_adapter_remove() {
 	if [[ -d "${projdir}/4_end_trimmed/pe" ]]; then
 		for adp in ${projdir}/4_end_trimmed/pe/*.R1.fastq.gz; do (
 			$gunzip $adp; $gunzip ${adp%.R1.fastq.gz}.R2.fastq.gz &&
-			python3 $porifera -r1 ${adp%.R1.fastq.gz}.R1.fastq -r2 ${adp%.R1.fastq.gz}.R2.fastq -a1 ${projdir}/adapters.R1.txt -a2 ${projdir}/adapters.R2.txt -m $adapter_match -l $min_len -o ./pe/ ) &
+			python3 $porifera -r1 ${adp%.R1.fastq.gz}.R1.fastq -r2 ${adp%.R1.fastq.gz}.R2.fastq -a1 ${projdir}/adapters.R1.txt -a2 ${projdir}/adapters.R2.txt -m $adapter_match -l $min_len -o ./pe/ &&
+
+			$gzip ${adp%.R1.fastq.gz}.R1.fastq; $gzip ${adp%.R1.fastq.gz}.R2.fastq &&
+			wait ) &
 			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 				wait
 			fi
@@ -906,7 +923,10 @@ main_adapter_remove() {
 	if [[ -d "${projdir}/4_end_trimmed/se" ]]; then
 		for adp in ${projdir}/4_end_trimmed/se/*.R1.fastq.gz; do (
 			$gunzip $adp &&
-			python3 $porifera -r1 ${adp%.gz} -a1 ${projdir}/adapters.R1.txt -m $adapter_match -l $min_len -o ./se/ ) &
+			python3 $porifera -r1 ${adp%.gz} -a1 ${projdir}/adapters.R1.txt -m $adapter_match -l $min_len -o ./se/ &&
+
+			$gzip ${adp%.gz} &&
+			wait ) &
 			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 				wait
 			fi
@@ -1111,7 +1131,10 @@ main_quality_filter() {
 			$gunzip $fin; $gunzip ${fin%.R1.fastq.gz}.R2.fastq.gz &&
 			python3 $krill -r1 ${fin%.R1.fastq.gz}.R1.fastq -r2 ${fin%.R1.fastq.gz}.R2.fastq -q $q_min -p $q_percent -o ./pe/ &&
 			fingz=${fin#*/pe/}; fingz=${fingz%.gz}
-			$gzip ./pe/*${fingz} && $gzip ./pe/*${fingz%.R1.fastq}.R2.fastq ) &
+			$gzip ./pe/*${fingz} && $gzip ./pe/*${fingz%.R1.fastq}.R2.fastq &&
+
+			$gzip ${fin%.R1.fastq.gz}.R1.fastq; $gzip ${fin%.R1.fastq.gz}.R2.fastq &&
+			wait ) &
 			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 				wait
 			fi
@@ -1123,7 +1146,10 @@ main_quality_filter() {
 			$gunzip $fin &&
 			python3 $krill -r1 ${fin%.gz} -q $q_min -p $q_percent -o ./se/ &&
 			fingz=${fin#*/se/}; fingz=${fingz%.gz}
-			$gzip ./se/*${fingz} ) &
+			$gzip ./se/*${fingz} &&
+
+			$gzip ${fin%.gz} &&
+			wait ) &
 			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 				wait
 			fi
