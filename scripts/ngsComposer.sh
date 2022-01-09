@@ -1178,7 +1178,7 @@ main_quality_filter() {
 
 			if [[ -f ${fin%.R1.fastq.gz}.R2.fastq.gz ]]; then
 				$gunzip ${fin%.R1.fastq.gz}.R2.fastq.gz &&
-				python3 $krill -r1 ${fin%.R1.fastq.gz}.R2.fastq -q $q_min -p $q_percent -o ./pe/ &&
+				python3 $krill -r1 ${fin%.R1.fastq.gz}.R2.fastq -q $q_min -p $q_percent -o ./se/ &&
 				cd se &&
 				$gzip *${fingz%.R1.fastq}.R2.fastq &&
 				cd ../ &&
