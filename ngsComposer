@@ -1,4 +1,4 @@
-#!/bin/bash
+1#!/bin/bash
 
 magenta=$'\e[1;35m'
 white=$'\e[0m'
@@ -171,7 +171,7 @@ cd $projdir
 samples_alt_dir="$(grep samples_alt_dir config.sh)"
 samples_alt_dir=${samples_alt_dir//*=}
 
-if [[ -d samples ]]; then
+if [[ ! -d samples ]]; then
   if [[ -z $samples_alt_dir || $samples_alt_dir =~ False ]]; then
     echo -e "${magenta}- samples folder is missing and not specified ${white}\n"
     echo -e "${magenta}- move raw or demultiplexed fastq files into a folder named samples in project_directory ${white}\n"
@@ -230,7 +230,7 @@ for i in $test_bc; do
 done
 
 cd $projdir
-test_fq=$(grep '^lib' config.sh | grep -v '_R' | awk '{gsub(/=/,"\t"); print $2}')
+test_fq=$(grep '^lib' config.sh | grep '_R' | awk '{gsub(/=/,"\t"); print $2}')
 cd samples
 for i in $test_fq; do
   if [[ ! -f "$i" ]]; then
