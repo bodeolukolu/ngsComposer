@@ -84,7 +84,7 @@ The steps implemented are first specified in a configuration file.
 ***
 
 ### Configuration
-Using a text editor, save a file containing any of the following variables as a python script called 'conf.py' (includes '.py' as file extension) and include it in your project directory.
+Using a text editor, save a file containing any of the following variables as a bash script called 'conf.sh' (includes '.sh' as file extension) and include it in your project directory.
 
 **General parameters**
 
