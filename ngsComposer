@@ -170,6 +170,15 @@ fi
 cd $projdir
 samples_alt_dir="$(grep samples_alt_dir config.sh)"
 samples_alt_dir=${samples_alt_dir//*=}
+
+if [[ -d samples ]]; then
+  if [[ -z $samples_alt_dir || $samples_alt_dir =~ False ]]; then
+    echo -e "${magenta}- samples folder is missing and not specified ${white}\n"
+    echo -e "${magenta}- move raw or demultiplexed fastq files into a folder named samples in project_directory ${white}\n"
+    echo -e "${magenta}- ngsComposer will quit in 5 seconds ${white}\n"
+    sleep 5; exit 0
+  fi
+fi
 if [[ -z $samples_alt_dir || $samples_alt_dir =~ False ]]; then
 	:
 else
@@ -214,22 +223,38 @@ cd $projdir
 test_bc=$(grep '^lib' config.sh | grep '_bc' | awk '{gsub(/=/,"\t"); print $2}')
 for i in $test_bc; do
   if [[ ! -f "$i" ]]; then
-    echo -e "${magenta}- one or more of files containing barcodes and corresponding sample ID are missing in project directory ${white}"
-    echo -e "${magenta}- place already demultiplexed fastq files in 2_demultiplexed folder ${white}"
-    echo -e "${magenta}- ngsComposer will automatically skip demuliplexing ${white}\n"
+    printf "\n"
+    echo -e "${magenta}- file(s) containing barcodes are missing in project directory ${white}"
+    echo -e "${magenta}- provide files or ngsComposer will automatically skip demuliplexing ${white}\n"
   fi
 done
 
 cd $projdir
-test_fq=$(grep '^lib' config.sh | grep -v '_bc' | awk '{gsub(/=/,"\t"); print $2}')
+test_fq=$(grep '^lib' config.sh | grep -v '_R' | awk '{gsub(/=/,"\t"); print $2}')
 cd samples
 for i in $test_fq; do
   if [[ ! -f "$i" ]]; then
-    echo -e "${magenta}- one or more of input fastq files are missing in samples folder ${white}"
-    echo -e "${magenta}- place already demultiplexed fastq files in 2_demultiplexed folder ${white}"
-    echo -e "${magenta}- ngsComposer will automatically skip demuliplexing ${white}\n"
+    echo -e "${magenta}- 1 or more of un-demultiplexed fastq files are missing in samples folder ${white}"
+    echo -e "${magenta}- Exiting ngsComposer ${white}\n"
+		sleep 5 && exit 1
   fi
 done
+if [[ -z "$test_bc" || -z "$test_fq" ]]; then
+  echo -e "${magenta}- un-demultiplexed fastq file(s) or file(s) containing barcodes are not listed? ${white}"
+  echo -e "${magenta}- do you want ngsComposer to consider fastq files in samples folder as already demultiplexed? ${white}\n"
+  read -p "- y(YES) or n(NO)? " -n 1 -r
+  if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    printf '\n'
+    echo -e "${magenta}- Exiting ngsComposer ${white}\n"
+    sleep 5 && exit 1
+  else
+    echo -e "${magenta}- ngsComposer skipping demuliplexing, and will use all fastq files in ./samples, ./samples/pe, and ./samples/se ${white}\n"
+    mkdir -p 2_demultiplexed
+    mkdir -p pe se
+    cp ${projdir}/samples/* ${projdir}/2_demultiplexed
+  fi
+fi
+
 
 
 ####################################################################################################################

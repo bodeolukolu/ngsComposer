@@ -117,25 +117,45 @@ else
 	gthreads=4
 	gN=$(( threads / gthreads ))
 fi
-
+if [[ -z "$multiprocess_demultiplex" ]]; then
+	multiprocess_demultiplex=True
+fi
 
 ######################################################################################################################################################
 echo -e "${blue}\n############################################################################## ${yellow}\n- performing Intitial QC of library/libraries\n${blue}##############################################################################${white}\n"
 
 main_initial_qc() {
 	cd ${projdir}
-	list_lib=$(grep '^lib' config.sh | grep '_R1=' | awk '{gsub(/=/,"\t"); print $2}')
+	mkdir -p 1_initial_qc
 
-  mkdir -p 1_initial_qc
-	for li in $list_lib; do
-		python3 $crinoid -r1 ./samples/${li} -t ${threads} -o ./1_initial_qc & PIDR1=$!
-		wait $PIDR1
-		if [[ "$test_lib_R2" != False ]]; then
-			lj=$(echo $li | awk '{gsub(/R1/,"R2"); print}')
-			python3 $crinoid -r1 ./samples/${lib1_R2} -t ${threads} -o ./1_initial_qc & PIDR1=$!
-			wait $PIDR1
+	if [[ -z "$test_bc" || -z "$test_fq" ]]; then
+		if [[ -d  2_demultiplexed ]]; then
+			cd 2_demultiplexed
+			for i in *.f*; do
+				python3 $crinoid -r1 $i -t ${threads} -o ./1_initial_qc & PIDR1=$!
+				wait $PIDR1
+			done
+			for i in ./pe/*.f*; do
+				python3 $crinoid -r1 $i -t ${threads} -o ./1_initial_qc & PIDR1=$!
+				wait $PIDR1
+			done
+			for i in ./se/*.f*; do
+				python3 $crinoid -r1 $i -t ${threads} -o ./1_initial_qc & PIDR1=$!
+				wait $PIDR1
+			done
 		fi
-	done
+	else
+		list_lib=$(grep '^lib' config.sh | grep '_R1=' | awk '{gsub(/=/,"\t"); print $2}')
+		for li in $list_lib; do
+			python3 $crinoid -r1 ./samples/${li} -t ${threads} -o ./1_initial_qc & PIDR1=$!
+			wait $PIDR1
+			if [[ "$test_lib_R2" != False ]]; then
+				lj=$(echo $li | awk '{gsub(/R1/,"R2"); print}')
+				python3 $crinoid -r1 ./samples/${lib1_R2} -t ${threads} -o ./1_initial_qc & PIDR1=$!
+				wait $PIDR1
+			fi
+		done
+	fi
 }
 cd $projdir
 if [ "$walkaway" == False ]; then
@@ -273,7 +293,7 @@ main_demultiplex() {
 				if [[ "$fringelen" -gt 0 ]]; then
 					python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid}
 				fi
-				$gzip ${sid}
+				gzip ${sid}
 				wait
 			done
 			if [[ "$test_lib_R2" != False ]]; then
@@ -282,7 +302,7 @@ main_demultiplex() {
 					if [[ "$fringelen" -gt 0 ]]; then
 						python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid}
 					fi
-					$gzip ${sid}
+					gzip ${sid}
 					wait
 				done
 			fi
@@ -296,7 +316,7 @@ main_demultiplex() {
 			done < ${projdir}/cat_RC.txt
 			cd ../
 			) &
-			if [[ $(jobs -r -p | wc -l) -ge $loopthreads ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $multiprocess_demultiplex ]]; then
 			  wait
 			fi
     done
@@ -414,13 +434,39 @@ if [ "$walkaway" == False ]; then
 	else
 		printf '\n'
 		echo -e "${magenta}- performing demultiplexing ${white}\n"
-		time main_demultiplex &>> log.out
+		if [[ ! -d ${projdir}/2_demultiplexed ]]; then
+			time main_demultiplex &>> log.out
+		else
+			echo -e "${magenta}- ${projdir}/2_demultiplexed already exist ${white}"
+			echo -e "${magenta}- skipping demultiplexing in 10 seconds ${white}\n"
+			sleep 10
+			if [[ "$(ls ${projdir}/2_demultiplexed/*.f*)" =~ R2 ]]; then
+				mkdir -p ${projdir}/2_demultiplexed/pe; mv *.f* ${projdir}/2_demultiplexed/pe/
+				wait
+			else
+				mkdir -p ${projdir}/2_demultiplexed/se; mv *.f* ${projdir}/2_demultiplexed/se/
+				wait
+			fi
+		fi
 	fi
 fi
 if [ "$walkaway" == True ]; then
 	if [ "$demultiplex" == 1 ]; then
 		echo -e "${magenta}- performing demultiplexing ${white}\n"
-		time main_demultiplex &>> log.out
+		if [[ ! -d ${projdir}/2_demultiplexed ]]; then
+			time main_demultiplex &>> log.out
+		else
+			echo -e "${magenta}- ${projdir}/2_demultiplexed already exist ${white}"
+			echo -e "${magenta}- skipping demultiplexing in 10 seconds ${white}\n"
+			sleep 10
+			if [[ "$(ls ${projdir}/2_demultiplexed/*.f*)" =~ R2 ]]; then
+				mkdir -p ${projdir}/2_demultiplexed/pe; mv *.f* ${projdir}/2_demultiplexed/pe/
+				wait
+			else
+				mkdir -p ${projdir}/2_demultiplexed/se; mv *.f* ${projdir}/2_demultiplexed/se/
+				wait
+			fi
+		fi
 	else
 		echo -e "${magenta}- skipping demultiplexing ${white}\n"
 	fi
