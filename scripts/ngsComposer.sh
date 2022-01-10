@@ -117,9 +117,7 @@ else
 	gthreads=4
 	gN=$(( threads / gthreads ))
 fi
-if [[ -z "$multiprocess_demultiplex" ]]; then
-	multiprocess_demultiplex=True
-fi
+
 
 ######################################################################################################################################################
 echo -e "${blue}\n############################################################################## ${yellow}\n- performing Intitial QC of library/libraries\n${blue}##############################################################################${white}\n"
@@ -316,7 +314,7 @@ main_demultiplex() {
 			done < ${projdir}/cat_RC.txt
 			cd ../
 			) &
-			if [[ $(jobs -r -p | wc -l) -ge $multiprocess_demultiplex ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 			  wait
 			fi
     done

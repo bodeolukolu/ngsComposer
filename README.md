@@ -124,7 +124,6 @@ Using a text editor, save a file containing any of the following variables as a 
 |adapter_match|12|number of base matches to identify adapters|integer|optional|
 |q_min|20|Q score minimum (Phred value 0-40) applied to q_percent variable|integer|optional|
 |q_percent|80|percentage of basses in read >= q_min Q scores|integer|optional|
-|multiprocess_demultiplex|True|break up fastq file into chunks to multi-process demultiplexing|True or False|optional|
 
 **Visualizations**
 
