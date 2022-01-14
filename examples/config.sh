@@ -30,7 +30,6 @@ q_percent=80
 
 #Visualizations
 ###################################################
-QC_all=summary,full
 QC_demultiplexed=summary,full
 QC_motif_validated=summary,full
 QC_end_trimmed=summary,full

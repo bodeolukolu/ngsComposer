@@ -129,7 +129,6 @@ Using a text editor, save a file containing any of the following variables as a 
 
 |Variable      |Default       |Usage         |Input         |required/Optional|
 |:-------------|:-------------|:-------------|:-------------|:----------------|
-|QC_all|na||summary and/or full|optional|
 |QC_demultiplexed|na||summary and/or full|optional|
 |QC_motif_validated|na||summary and/or full|optional|
 |QC_end_trimmed|na||summary and/or full|optional|
@@ -178,7 +177,6 @@ q_percent=80
 
 #Visualizations
 ###################################################
-QC_all=summary,full
 QC_demultiplexed=summary,full
 QC_motif_validated=summary,full
 QC_end_trimmed=summary,full

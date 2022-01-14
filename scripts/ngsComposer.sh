@@ -51,27 +51,6 @@ fi
 if [[ -z $q_percent ]]; then
 	q_percent=80
 fi
-if [[ "$QC_all" =~ summary && "$QC_all" =~ full ]]; then
-	QC_demultiplexed=summary,full
-	QC_motif_validated=summary,full
-	QC_end_trimmed=summary,full
-	QC_adapter_removed=summary,full
-	QC_final=summary,full
-fi
-if [[ "$QC_all" == summary ]]; then
-	QC_demultiplexed=summary
-	QC_motif_validated=summary
-	QC_end_trimmed=summary
-	QC_adapter_removed=summary
-	QC_final=summary
-fi
-if [[ "$QC_all" == full ]]; then
-	QC_demultiplexed=full
-	QC_motif_validated=full
-	QC_end_trimmed=full
-	QC_adapter_removed=full
-	QC_final=full
-fi
 if [[ -z $QC_final ]]; then
 	QC_final=summary
 fi
@@ -337,7 +316,7 @@ main_demultiplex() {
 	rm ./*chunk*/unknown.R1.fastq ./*chunk*/unknown.R2.fastq
 	cd unknown && $gzip * && cd ../
   wait
-  samples_r1=$(ls ./*/*R1* | awk '{gsub(/\//,"\t"); print}' | awk '{print $3}' | sort | uniq | grep -v 'unknown')
+  samples_r1=$(find -type f -wholename './*/*R1*' | awk '{gsub(/\//,"\t"); print}' | awk '{print $3}' | sort | uniq | grep -v 'unknown' | grep -v 'qc')
   for f in $samples_r1; do (
 		if [[ "$(ls -A ./*chunk*/*R2.fastq.gz 2> /dev/null)" ]]; then
 	    find ./*chunk*/${f} | xargs cat > ./pe/${f}
