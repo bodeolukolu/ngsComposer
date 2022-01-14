@@ -26,7 +26,7 @@ if (nrow(qscores) <= 250) {
 
 
 # create qscore distribution visualization
-boxplot <- ggplot(qc, aes(x = position, y = score, group = position)) +
+boxplot <- ggplot(qc, aes(x = position, y = score, weight=count, group = position)) +
   geom_hline(aes(yintercept = 40), lty=1, alpha=0.05, size=0.35) +
   geom_hline(aes(yintercept = 30), lty=1, alpha=0.05, size=0.35)+
   geom_hline(aes(yintercept = 20), lty=1, alpha=0.05, size=0.35)+
