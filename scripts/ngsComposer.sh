@@ -124,13 +124,13 @@ main_initial_qc() {
 	else
 		list_lib=$(grep '^lib' config.sh | grep '_R1=' | awk '{gsub(/=/,"\t"); print $2}')
 		for li in $list_lib; do
-			python3 $crinoid -r1 ./samples/${li} -t ${threads} -o ./1_initial_qc & PIDR1=$!
-			wait $PIDR1
+			python3 $crinoid -r1 ./samples/${li} -t $((threads/2)) -o ./1_initial_qc & PIDR1=$!
 			if [[ "$test_lib_R2" != False ]]; then
 				lj=$(echo $li | awk '{gsub(/R1/,"R2"); print}')
-				python3 $crinoid -r1 ./samples/${lib1_R2} -t ${threads} -o ./1_initial_qc & PIDR1=$!
-				wait $PIDR1
+				python3 $crinoid -r1 ./samples/${lib1_R2} -t $((threads/2)) -o ./1_initial_qc & PIDR2=$!
 			fi
+			wait $PIDR1
+			wait $PIDR2
 		done
 	fi
 }
