@@ -285,9 +285,9 @@ main_demultiplex() {
 			fi
 			# Now combine fastq files with the same sample_ID
 			while IFS="" read -r p || [ -n "$p" ]; do
-				find -type f -wholename ./${p}_Row*_Column*R1* | xargs cat > ${p}.R1.fastq.gz
+				find -type f -wholename "./${p}_Row*_Column*R1*" | xargs cat > ${p}.R1.fastq.gz
 				if [[ "$test_lib_R2" != False ]]; then
-					find -type f -wholename ./${p}_Row*_Column*R2* | xargs cat > ${p}.R2.fastq.gz
+					find -type f -wholename "./${p}_Row*_Column*R2*" | xargs cat > ${p}.R2.fastq.gz
 				fi
 				rm ${p}_Row*_Column*
 			done < ${projdir}/cat_RC.txt
@@ -307,16 +307,16 @@ main_demultiplex() {
   done
   wait
 
-	find -type f -wholename ./*chunk*/unknown.R1.fastq | xargs cat > ./unknown/unknown.R1.fastq & PIDR1=$!
+	find -type f -wholename "./*chunk*/unknown.R1.fastq" | xargs cat > ./unknown/unknown.R1.fastq & PIDR1=$!
 	if [[ "$test_lib_R2" != False ]]; then
-		find -type f -wholename ./*chunk*/unknown.R2.fastq | xargs cat > ./unknown/unknown.R2.fastq  & PIDR2=$!
+		find -type f -wholename "./*chunk*/unknown.R2.fastq" | xargs cat > ./unknown/unknown.R2.fastq  & PIDR2=$!
 	fi
 	wait $PIDR1
 	wait $PIDR2
 	rm ./*chunk*/unknown.R1.fastq ./*chunk*/unknown.R2.fastq
 	cd unknown && $gzip * && cd ../
   wait
-  samples_r1=$(find -type f -wholename './*/*R1*' | awk '{gsub(/\//,"\t"); print}' | awk '{print $3}' | sort | uniq | grep -v 'unknown' | grep -v 'qc')
+  samples_r1=$(find -type f -wholename "./*/*R1*" | awk '{gsub(/\//,"\t"); print}' | awk '{print $3}' | sort | uniq | grep -v 'unknown' | grep -v 'qc')
   for f in $samples_r1; do (
 		if [[ "$(ls -A ./*chunk*/*R2.fastq.gz 2> /dev/null)" ]]; then
 	    find ./*chunk*/${f} | xargs cat > ./pe/${f}
