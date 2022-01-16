@@ -105,6 +105,8 @@ main_initial_qc() {
 	cd ${projdir}
 	mkdir -p 1_initial_qc
 
+	test_bc=$(grep '^lib' config.sh | grep '_bc' | awk '{gsub(/=/,"\t"); print $2}')
+	test_fq=$(grep '^lib' config.sh | grep '_R' | awk '{gsub(/=/,"\t"); print $2}')
 	if [[ -z "$test_bc" || -z "$test_fq" ]]; then
 		if [[ -d  2_demultiplexed ]]; then
 			cd 2_demultiplexed
