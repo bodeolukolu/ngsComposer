@@ -102,28 +102,40 @@ fi
 echo -e "${blue}\n############################################################################## ${yellow}\n- performing Intitial QC of library/libraries\n${blue}##############################################################################${white}\n"
 
 main_initial_qc() {
-	cd ${projdir}
-	mkdir -p 1_initial_qc
 
+	cd ${projdir}
 	test_bc=$(grep '^lib' config.sh | grep '_bc' | awk '{gsub(/=/,"\t"); print $2}')
 	test_fq=$(grep '^lib' config.sh | grep '_R' | awk '{gsub(/=/,"\t"); print $2}')
 	if [[ -z "$test_bc" || -z "$test_fq" ]]; then
 		if [[ -d  2_demultiplexed ]]; then
-			cd 2_demultiplexed
-			for i in *.f*; do
-				python3 $crinoid -r1 $i -t ${threads} -o ./1_initial_qc & PIDR1=$!
-				wait $PIDR1
-			done
-			for i in ./pe/*.f*; do
-				python3 $crinoid -r1 $i -t ${threads} -o ./1_initial_qc & PIDR1=$!
-				wait $PIDR1
-			done
-			for i in ./se/*.f*; do
-				python3 $crinoid -r1 $i -t ${threads} -o ./1_initial_qc & PIDR1=$!
-				wait $PIDR1
-			done
+			if [ "$(ls -A 2_demultiplexed)" ]; then
+				cd 2_demultiplexed
+				mkdir -p qc
+				for i in *.f*; do
+					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
+					wait $PIDR1
+				done
+				if [[ -d pe ]]; then
+					mkdir -p ./pe/qc
+					for i in ./pe/*.f*; do
+						python3 $crinoid -r1 $i -t ${threads} -o ./pe/qc & PIDR1=$!
+						wait $PIDR1
+					done
+				fi
+				if [[ -d se ]]; then
+					mkdir -p ./se/qc
+					for i in ./se/*.f*; do
+						python3 $crinoid -r1 $i -t ${threads} -o ./se/qc & PIDR1=$!
+						wait $PIDR1
+					done
+				fi
+			fi
 		fi
 	else
+		
+		cd ${projdir}
+		mkdir -p 1_initial_qc
+
 		list_lib=$(grep '^lib' config.sh | grep '_R1=' | awk '{gsub(/=/,"\t"); print $2}')
 		for li in $list_lib; do
 			python3 $crinoid -r1 ./samples/${li} -t $((threads/2)) -o ./1_initial_qc & PIDR1=$!
