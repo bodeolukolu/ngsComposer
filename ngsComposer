@@ -254,6 +254,7 @@ if [[ -z "$test_bc" || -z "$test_fq" ]]; then
     sleep 5 && exit 1
   else
     echo -e "${magenta}- ngsComposer skipping demuliplexing, and will use all fastq files in ./samples, ./samples/pe, and ./samples/se ${white}\n"
+    echo -e "${magenta}- copying files from ${projdir}/samples to ${projdir}/2_demultiplexed. This will take awhile for large files ${white}"
     mkdir -p ${projdir}/2_demultiplexed
     mkdir -p ${projdir}/2_demultiplexed/pe ${projdir}/2_demultiplexed/se
     cp ${projdir}/samples/* ${projdir}/2_demultiplexed
