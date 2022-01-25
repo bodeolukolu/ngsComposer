@@ -32,8 +32,11 @@ echo -e "${blue}\n############################################## \n- installing 
   mkdir -p ./helpers/R_packages
   cd ./helpers/R_packages
   R -e 'install.packages("ggplot2", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
+  R -e 'install.packages("data.table", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("gtable", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("rlang", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
+  R -e 'install.packages("plyr", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
+  R -e 'install.packages("Rcpp", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("scales", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("R6", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("lifecycle", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'

@@ -12,6 +12,7 @@ suppressMessages(library(ggplot2))
 
 
 qscores <- read.table(qscore_sum, header=F, sep=",")
+
 names(qscores) <- gsub("V","", names(qscores))
 sum <- format(round(as.numeric(sum(qscores[1,])), 1), nsmall=0, big.mark=",")
 qc <- reshape(qscores, direction="long", varying=list(c(1:ncol(qscores))), v.names="count")
