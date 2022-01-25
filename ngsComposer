@@ -374,12 +374,12 @@ if [ -z $cluster ]; then
     echo -e "${white}\n##############################################################################\n"
   fi
 
-  echo -e "${magenta}- Do you want to perform end-trimming of reads? ${white}"
+  echo -e "${magenta}- Do you want to perform quality end-trimming of reads? ${white}"
   read -p "- y(YES) or n(NO) " -n 1 -r
   if [[ ! $REPLY =~ ^[Yy]$ ]]; then
   	printf '\n'
 	printf "end_trim=0 \n" >> steps.txt
-  	echo -e "${magenta}- skipping end-trimming of reads ${white}"
+  	echo -e "${magenta}- skipping quality end-trimming of reads ${white}"
     echo -e "${white}\n##############################################################################\n"
   else
     printf '\n'
@@ -486,12 +486,12 @@ if [[ "$cluster" == True ]]; then
     echo -e "${white}\n##############################################################################\n"
   fi
 
-  echo -e "${magenta}- Do you want to perform end-trimming of reads? ${white}"
+  echo -e "${magenta}- Do you want to perform quality end-trimming of reads? ${white}"
   read -p "- y(YES) or n(NO) " -n 1 -r
   if [[ ! $REPLY =~ ^[Yy]$ ]]; then
   	printf '\n'
 	printf "end_trim=0 \n" >> steps.txt
-  	echo -e "${magenta}- skipping end-trimming of reads ${white}"
+  	echo -e "${magenta}- skipping quality end-trimming of reads ${white}"
     echo -e "${white}\n##############################################################################\n"
   else
     printf '\n'

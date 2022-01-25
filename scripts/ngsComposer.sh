@@ -132,7 +132,7 @@ main_initial_qc() {
 			fi
 		fi
 	else
-		
+
 		cd ${projdir}
 		mkdir -p 1_initial_qc
 
@@ -720,6 +720,11 @@ main_end_trim() {
 	cd 4_end_trimmed
 	mkdir -p pe se
 
+	if [[ ! -d ${projdir}/3_motif_validated ]]; then mkdir -p ${projdir}/3_motif_validated/pe; mkdir -p ${projdir}/3_motif_validated/se; fi
+	if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe)" ]]; then mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/3_motif_validated/pe/*fastq*; fi
+	if [[ -z "$(ls -A ${projdir}/3_motif_validated/se)" ]]; then mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/3_motif_validated/se/*fastq*; fi
+	find . -type d -empty -delete
+
 	if [[ -d "${projdir}/3_motif_validated/pe" ]]; then
 		for etm in ${projdir}/3_motif_validated/pe/*.R1.fastq.gz; do (
 			$gunzip $etm && $gunzip ${etm%.R1.fastq.gz}.R2.fastq.gz &&
@@ -960,6 +965,12 @@ main_adapter_remove() {
 	cd 5_adapter_removed
 	mkdir -p pe se
 
+	if [[ ! -d ${projdir}/4_end_trimmed/pe ]]; then mkdir -p ${projdir}/4_end_trimmed/pe; mkdir -p ${projdir}/4_end_trimmed/se; fi
+	if [[ -z "$(ls -A ${projdir}/4_end_trimmed/pe)" ]]; then mv ${projdir}/3_motif_validated/pe/*fastq* ${projdir}/4_end_trimmed/pe/*fastq*; fi
+	if [[ -z "$(ls -A ${projdir}/4_end_trimmed/se)" ]]; then mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/4_end_trimmed/se/*fastq*; fi
+	find . -type d -empty -delete
+
+
 	if [[ -d "${projdir}/4_end_trimmed/pe" ]]; then
 		for adp in ${projdir}/4_end_trimmed/pe/*.R1.fastq.gz; do (
 			$gunzip $adp && $gunzip ${adp%.R1.fastq.gz}.R2.fastq.gz &&
@@ -1185,6 +1196,12 @@ main_quality_filter() {
   mkdir -p 6_quality_filtered_final
 	cd 6_quality_filtered_final
 	mkdir -p pe se
+
+	if [[ ! -d ${projdir}/5_adapter_removed/pe ]]; then mkdir -p ${projdir}/5_adapter_removed/pe; mkdir -p ${projdir}/5_adapter_removed/se; fi
+	if [[ -z "$(ls -A ${projdir}/5_adapter_removed/pe)" ]]; then mv ${projdir}/4_end_trimmed/pe/*fastq* ${projdir}/5_adapter_removed/pe/*fastq*; fi
+	if [[ -z "$(ls -A ${projdir}/5_adapter_removed/se)" ]]; then mv ${projdir}/4_end_trimmed/se/*fastq* ${projdir}/5_adapter_removed/se/*fastq*; fi
+	find . -type d -empty -delete
+
 
 	if [[ -d "${projdir}/5_adapter_removed/pe" ]]; then
 		for fin in ${projdir}/5_adapter_removed/pe/*.R1.fastq.gz; do (
