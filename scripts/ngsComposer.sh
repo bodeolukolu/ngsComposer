@@ -249,13 +249,14 @@ main_demultiplex() {
 		cd ./2_demultiplexed
 		if [[ $multithread_demultiplex == False ]]; then
 			awk '{gsub(/_Row/,"\t"); gsub(/_Column/,"\t"); print}' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk '{print $1}' | sort | uniq > ${projdir}/cat_RC.txt
-			$gunzip -c ${projdir}/samples/"$li" > ./${li%.fastq.gz}.fastq
-			$gunzip -c ${projdir}/samples/"$lj" > ./${lj%.fastq.gz}.fastq
 			if [[ "$test_lib_R2" != False ]]; then
-				python3 $scallop -r1 ./${li%.fastq.gz}.fastq -f $front_trim
-				python3 $scallop -r1 ./${lj%.fastq.gz}.fastq -f $front_trim
+				$gunzip -c ${projdir}/samples/"$li" > ./${li%.fastq.gz}.fastq
+				python3 $scallop -r1 ./${li%.fastq.gz}.fastq -f $front_trim && rm ${li%.fastq.gz}.fastq
+				$gunzip -c ${projdir}/samples/"$lj" > ./${lj%.fastq.gz}.fastq
+				python3 $scallop -r1 ./${lj%.fastq.gz}.fastq -f $front_trim && rm ${lj%.fastq.gz}.fastq
 			else
-				python3 $scallop -r1 ./${li%.fastq.gz}.fastq -f $front_trim
+				$gunzip -c ${projdir}/samples/"$li" > ./${li%.fastq.gz}.fastq
+				python3 $scallop -r1 ./${li%.fastq.gz}.fastq -f $front_trim && rm ${li%.fastq.gz}.fastq
 			fi
 
 			if [[ "$test_lib_R2" != False ]]; then
@@ -294,6 +295,7 @@ main_demultiplex() {
 			done < ${projdir}/cat_RC.txt
 			cd ../
 
+			mkdir -p unknown
 			mv unknown*.fastq ./unknown/
 			cd unknown && $gzip * && cd ../
 			wait
