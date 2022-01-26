@@ -29,12 +29,12 @@ if [ -z "$Rout" ];then
   echo -e "${white}- dependencies for R in linux: <sudo apt install libcurl4-openssl-dev> and <sudo apt install libssl-dev>"
 fi
 
-pythonout=$(python --version | head -n 3)
+pythonout=$(python3 --version | head -n 3)
 if [ -z "$pythonout" ];then
 	module add python3
-	python --version | head -n 3
+	python3 --version | head -n 3
 fi
-pythonout=$(python --version | head -n 3)
+pythonout=$(python3 --version | head -n 3)
 if [ -z "$pythonout" ];then
   echo -e "${white}- install Python3 before proceeding ${white}"
 fi
@@ -47,6 +47,10 @@ export krill=${ngsComposer_dir}/tools/krill.py
 export porifera=${ngsComposer_dir}/tools/porifera.py
 export rotifer=${ngsComposer_dir}/tools/rotifer.py
 export scallop=${ngsComposer_dir}/tools/scallop.py
+
+mkdir ~/bin
+PATH=~/bin:$PATH
+ln -s /usr/bin/python3 ~/bin/python
 
 if command -v pigz &>/dev/null; then
   export gzip=pigz
