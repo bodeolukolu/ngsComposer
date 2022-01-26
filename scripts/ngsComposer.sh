@@ -54,6 +54,9 @@ fi
 if [[ -z $QC_final ]]; then
 	QC_final=summary
 fi
+if [[ -z $multithread_demultiplex ]]; then
+	multithread_demultiplex=False
+fi
 
 cd $projdir
 
@@ -227,8 +230,7 @@ main_demultiplex() {
     awk -F "\t" -v min=$Min_Rlen 'BEGIN {OFS=FS}; {$1=substr($1, 1, min); print}' ${bc_matrix%.txt}_flush.txt > temp
     rm ${bc_matrix%.txt}_flush.txt
     column=`head -n 1 temp | wc -w`
-    for (( i=1; i <= $column; i++))
-    do
+    for (( i=1; i <= $column; i++)); do
       awk '{printf ("%s%s", tab, $'$i'); tab="\t"} END {print ""}' temp
     done >> ${bc_matrix%.txt}_flush.txt
     awk -F "\t" -v min=$Min_Flen 'BEGIN {OFS=FS}; {$1=substr($1, 1, min); print}' ${bc_matrix%.txt}_flush.txt > temp
@@ -244,37 +246,22 @@ main_demultiplex() {
     awk '{print $0 "\t" length($1)-1}' | awk '{print $0 "\t" length($2)-1}' | awk '{print $3"_"$4"_"$5"\t"$6"\t"$7}' > ${bc_matrix%.txt}_fringe.txt
 
 
-    cd ./2_demultiplexed
-    $zcat ${projdir}/samples/"$li" | awk 'NR%40000000==1{x="R1_chunk"++i".fastq";}{print > x}' - & PIDR1=$!
-    if [[ "$test_lib_R2" != False ]]; then
-			$zcat ${projdir}/samples/"$lj" | awk 'NR%40000000==1{x="R2_chunk"++i".fastq";}{print > x}' - & PIDR2=$!
-		fi
-    wait $PIDR1
-    if [[ "$test_lib_R2" != False ]]; then wait $PIDR2; fi
-
-    for f in R1_chunk*; do
-      subdir=${f%.fastq}
-      subdir=${subdir##*_}
-      mkdir -- "$subdir"
-      mv "R1_${subdir}.fastq" "$subdir"
-      if [[ "$test_lib_R2" != False ]]; then mv "R2_${subdir}.fastq" "$subdir"; fi
-    done
-    wait
-
-		awk '{gsub(/_Row/,"\t"); gsub(/_Column/,"\t"); print}' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk '{print $1}' | sort | uniq > ${projdir}/cat_RC.txt
-    for ck in chunk*; do (
-      cd $ck
-      if [[ "$test_lib_R2" != False ]]; then
-				python3 $scallop -r1 ./R1_${ck}.fastq -f $front_trim && rm R1_${ck}.fastq
-				python3 $scallop -r1 ./R2_${ck}.fastq -f $front_trim && rm R2_${ck}.fastq
+		cd ./2_demultiplexed
+		if [[ $multithread_demultiplex == False ]]; then
+			awk '{gsub(/_Row/,"\t"); gsub(/_Column/,"\t"); print}' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk '{print $1}' | sort | uniq > ${projdir}/cat_RC.txt
+			$gunzip -c ${projdir}/samples/"$li" > ./${li%.fastq.gz}.fastq
+			$gunzip -c ${projdir}/samples/"$lj" > ./${lj%.fastq.gz}.fastq
+			if [[ "$test_lib_R2" != False ]]; then
+				python3 $scallop -r1 ./${li%.fastq.gz}.fastq -f $front_trim
+				python3 $scallop -r1 ./${lj%.fastq.gz}.fastq -f $front_trim
 			else
-				python3 $scallop -r1 ./R1_${ck}.fastq -f $front_trim && rm R1_${ck}.fastq
+				python3 $scallop -r1 ./${li%.fastq.gz}.fastq -f $front_trim
 			fi
 
 			if [[ "$test_lib_R2" != False ]]; then
-				python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -r2 ./trimmed_se.R2_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
+				python3 $anemone -r1 ./trimmed_se.${li%.fastq.gz}.fastq -r2 ./trimmed_se.${lj%.fastq.gz}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
 			else
-				python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
+				python3 $anemone -r1 ./trimmed_se.${li%.fastq.gz}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
 			fi
 
 			rm trimmed_se*
@@ -284,7 +271,7 @@ main_demultiplex() {
 				if [[ "$fringelen" -gt 0 ]]; then
 					python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid}
 				fi
-				gzip ${sid}
+				$gzip ${sid}
 				wait
 			done
 			if [[ "$test_lib_R2" != False ]]; then
@@ -293,7 +280,7 @@ main_demultiplex() {
 					if [[ "$fringelen" -gt 0 ]]; then
 						python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid}
 					fi
-					gzip ${sid}
+					$gzip ${sid}
 					wait
 				done
 			fi
@@ -306,46 +293,124 @@ main_demultiplex() {
 				rm ${p}_Row*_Column*
 			done < ${projdir}/cat_RC.txt
 			cd ../
-			) &
-			if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
-			  wait
-			fi
-    done
-    wait
 
-		for ck in chunk*; do mv $ck ${bc_matrix%.txt}_${ck}; done
+			mv unknown*.fastq ./unknown/
+			cd unknown && $gzip * && cd ../
+			wait
+			if [[ "$test_lib_R2" != False ]]; then
+				mv *.fastq ./pe/
+				cd unknown && $gzip * && cd ../
+			fi
+			wait
+			if [[ "$test_lib_R2" == False ]]; then
+				mv *.fastq ./se/
+				cd se && $gzip * && cd ../
+			fi
+			wait
+
+		else
+			$zcat ${projdir}/samples/"$li" | awk 'NR%40000000==1{x="R1_chunk"++i".fastq";}{print > x}' - & PIDR1=$!
+			wait $PIDR1
+			if [[ "$test_lib_R2" != False ]]; then
+				$zcat ${projdir}/samples/"$lj" | awk 'NR%40000000==1{x="R2_chunk"++i".fastq";}{print > x}' - & PIDR2=$!
+			fi
+			wait $PIDR2
+			for f in R1_chunk*; do
+				subdir=${f%.fastq}
+				subdir=${subdir##*_}
+				mkdir -- "$subdir"
+				mv "R1_${subdir}.fastq" "$subdir"
+				if [[ "$test_lib_R2" != False ]]; then mv "R2_${subdir}.fastq" "$subdir"; fi
+			done
+			wait
+			awk '{gsub(/_Row/,"\t"); gsub(/_Column/,"\t"); print}' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk '{print $1}' | sort | uniq > ${projdir}/cat_RC.txt
+			for ck in chunk*; do (
+				cd $ck
+				if [[ "$test_lib_R2" != False ]]; then
+					python3 $scallop -r1 ./R1_${ck}.fastq -f $front_trim && rm R1_${ck}.fastq
+					python3 $scallop -r1 ./R2_${ck}.fastq -f $front_trim && rm R2_${ck}.fastq
+				else
+					python3 $scallop -r1 ./R1_${ck}.fastq -f $front_trim && rm R1_${ck}.fastq
+				fi
+
+				if [[ "$test_lib_R2" != False ]]; then
+					python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -r2 ./trimmed_se.R2_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
+				else
+					python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
+				fi
+
+				rm trimmed_se*
+				wait
+				for sid in $(ls *.R1.fastq | grep -v unknown); do
+					fringelen=$( awk -F'\t' -v sampid=${sid%.R1.fastq} '$1 == sampid' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk -F'\t' '{print $2}' )
+					if [[ "$fringelen" -gt 0 ]]; then
+						python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid}
+					fi
+					gzip ${sid}
+					wait
+				done
+				if [[ "$test_lib_R2" != False ]]; then
+					for sid in $(ls *.R2.fastq | grep -v unknown); do
+						fringelen=$( awk -F'\t' -v sampid=${sid%.R2.fastq} '$1 == sampid' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk -F'\t' '{print $3}' )
+						if [[ "$fringelen" -gt 0 ]]; then
+							python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid}
+						fi
+						gzip ${sid}
+						wait
+					done
+				fi
+				# Now combine fastq files with the same sample_ID
+				while IFS="" read -r p || [ -n "$p" ]; do
+					find -type f -wholename "./${p}_Row*_Column*R1*" | xargs cat > ${p}.R1.fastq.gz
+					if [[ "$test_lib_R2" != False ]]; then
+						find -type f -wholename "./${p}_Row*_Column*R2*" | xargs cat > ${p}.R2.fastq.gz
+					fi
+					rm ${p}_Row*_Column*
+				done < ${projdir}/cat_RC.txt
+				cd ../
+				) &
+				if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
+					wait
+				fi
+			done
+			wait
+			for ck in chunk*; do mv $ck ${bc_matrix%.txt}_${ck}; done
+
+			find -type f -wholename "./*chunk*/unknown.R1.fastq" | xargs cat > ./unknown/unknown.R1.fastq & PIDR1=$!
+			wait $PIDR1
+			if [[ "$test_lib_R2" != False ]]; then
+				find -type f -wholename "./*chunk*/unknown.R2.fastq" | xargs cat > ./unknown/unknown.R2.fastq  & PIDR2=$!
+			fi
+			wait $PIDR2
+			rm ./*chunk*/unknown.R1.fastq ./*chunk*/unknown.R2.fastq
+			cd unknown && $gzip * && cd ../
+			wait
+			samples_r1=$(find -type f -wholename "./*/*R1*" | awk '{gsub(/\//,"\t"); print}' | awk '{print $3}' | sort | uniq | grep -v 'unknown' | grep -v 'qc')
+			for f in $samples_r1; do (
+				if [[ "$(ls -A ./*chunk*/*R2.fastq.gz 2> /dev/null)" ]]; then
+					find ./*chunk*/${f} | xargs cat > ./pe/${f}
+					find ./*chunk*/${f%.R1.fastq.gz}.R2.fastq.gz | xargs cat > ./pe/${f%.R1.fastq.gz}.R2.fastq.gz
+				else
+					find ./*chunk*/${f} | xargs cat > ./se/${f}
+				fi
+				wait
+				rm ./*chunk*/${f} ./*chunk*/${f%.R1.fastq.gz}.R2.fastq.gz
+				wait ) &
+				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+					wait
+				fi
+			done
+			wait
+		fi
+
 		rm ${projdir}/${bc_matrix%.txt}_fringe.txt
 		rm ${projdir}/${bc_matrix%.txt}_flush.txt
 		rm ${projdir}/holdbc.txt
 		rm ${projdir}/cat_RC.txt
+
   done
   wait
 
-	find -type f -wholename "./*chunk*/unknown.R1.fastq" | xargs cat > ./unknown/unknown.R1.fastq & PIDR1=$!
-	if [[ "$test_lib_R2" != False ]]; then
-		find -type f -wholename "./*chunk*/unknown.R2.fastq" | xargs cat > ./unknown/unknown.R2.fastq  & PIDR2=$!
-	fi
-	wait $PIDR1
-	wait $PIDR2
-	rm ./*chunk*/unknown.R1.fastq ./*chunk*/unknown.R2.fastq
-	cd unknown && $gzip * && cd ../
-  wait
-  samples_r1=$(find -type f -wholename "./*/*R1*" | awk '{gsub(/\//,"\t"); print}' | awk '{print $3}' | sort | uniq | grep -v 'unknown' | grep -v 'qc')
-  for f in $samples_r1; do (
-		if [[ "$(ls -A ./*chunk*/*R2.fastq.gz 2> /dev/null)" ]]; then
-	    find ./*chunk*/${f} | xargs cat > ./pe/${f}
-	    find ./*chunk*/${f%.R1.fastq.gz}.R2.fastq.gz | xargs cat > ./pe/${f%.R1.fastq.gz}.R2.fastq.gz
-		else
-			find ./*chunk*/${f} | xargs cat > ./se/${f}
-		fi
-		wait
-		rm ./*chunk*/${f} ./*chunk*/${f%.R1.fastq.gz}.R2.fastq.gz
-		wait ) &
-    if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
-      wait
-    fi
-  done
-  wait
 	find . -type d -empty -delete
 	find ./*/ -size 0 -delete
 

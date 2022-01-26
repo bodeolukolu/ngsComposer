@@ -19,7 +19,7 @@ Base-call error-filtering and read preprocessing pipeline designed by biologists
 - Supports variable length barcodes and dual-indexing
 - Trims buffer sequences and quality filters on a read-by-read basis
 - Accepts project directory of multiple libraries
-- Designed by biologists (please don't run away!)
+- Designed by biologists
 
 ## Contents
 - [Installation](#installation)
@@ -54,16 +54,16 @@ For help troubleshooting installation, see the troubleshooting section
 ### Basic usage
 
 Set up your project directory containing the following:
-- a folder named <samples>, which contains fastq file(s). Multiple libraries or demultiplexed fastq files can be included.
-- file named <barcodes_lib1.txt>, which contains barcodes and associated sample IDs. Additional library fastq files can be included, e.g. second library will have <barcodes_lib2.txt> file corresponding to lib2_R1/lib2_R2 variable (holds fastq file names) in the config.sh.
+- A folder named "samples", which contains fastq file(s). Multiple libraries or demultiplexed fastq files can be included.
+- A file named "barcodes_lib1.txt", which contains barcodes and associated sample IDs. For additional libraries with different sample IDs specifiy "barcodes_lib2.txt", "barcodes_lib3.txt", ... "lib1_R1" and "lib1_R2" are variables in "config.sh" for R1 and R2 fastq file names, respectively, and correspond to "barcodes_lib1.txt".
 - 2 files containing adapter sequences of R1/P5/forward (<adapters.R1.txt>) and R2/P7/reverse (<adapters.R2.txt>) reads.
-- conf.sh (see "Configuration" below for detailed instructions on creating this file)
+- config.sh (see "Configuration" below for detailed instructions on creating this file)
                                      .
 
 <a><img src="https://imgur.com/SYiOxfR.png" title="source: imgur.com" width=400 /></a>
 
 
-From command line, run ngsComposer with the specified directory of your project
+From command line, run ngsComposer as shown below:
 ```bash
 $ bash <path_to_ngsComposer_directory>/ngsComposer <path_to_project_directory>
 ```
@@ -84,13 +84,13 @@ The steps implemented are first specified in a configuration file.
 ***
 
 ### Configuration
-Using a text editor, save a file containing any of the following variables as a bash script called 'conf.sh' (includes '.sh' as file extension) and include it in your project directory.
+Using a text editor, save a file containing any of the following variables as a bash script called 'config.sh' and include it in your project directory.
 
 **General parameters**
 
 |Variable      |Default       |Usage         |Input         |required/Optional|
 |:-------------|:-------------|:-------------|:-------------|:----------------|
-|threads|2|choose maximum number of subprocesses that can run simultaneously|integer|optional|
+|threads|total-2|choose maximum number of subprocesses that can run simultaneously|integer|optional|
 |walkaway|True|run from beginning to end without pausing at qc steps |True or False|optional|
 |cluster|False|run on compute cluster node (default: slurm) or workstation|True or False|optional|
 |samples_alt_dir|False|input files stored in different different from project directory|True or False|optional|
@@ -244,27 +244,6 @@ G	sample3
 T	sample4
 ```
 
-#### Index file for directing multiple barcode files
-The index file is a tab delimited file required to associate the barcodes file with a specific library in your project directory. It must include the filename of the forward read (R1) followed by the appropriate barcodes file. Reverse reads (R2), if present, will automatically be detected and are not indicated in this file.
-
-**index.txt**
-```
-1_R1.fastq  barcodes_1.txt
-```
-
-Alternatively, multiple barcoding schemes may be included to accomodate multiple libraries. For example:
-
-**index.txt**
-```
-1_R1.fastq  1_bcs.txt
-2_R1.fastq  2_bcs.txt
-```
-
-<a><img src="https://imgur.com/mnrrviL.png" title="source: imgur.com" width=600 /></a>
-
-*In this example, sample "1_R1.fastq" and "1_R2.fastq" correspond with "1_bcs.txt" and "2_R1.fastq" and "2_R2.fastq" correspond with "2_bcs.txt"*
-
-***
 
 ### Adapters
 #### Adapters file(s)
