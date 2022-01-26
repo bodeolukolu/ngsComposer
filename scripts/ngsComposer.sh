@@ -415,7 +415,8 @@ main_demultiplex() {
 
 
 	find . -type d -empty -delete
-	find ./*/ -size 0 -delete
+	find ./pe -size 0 -delete 2> /dev/null
+	find ./se -size 0 -delete 2> /dev/null
 
 	if [[ "${QC_demultiplexed}" =~ summary || "${QC_demultiplexed}" =~ full ]]; then
 		cd unknown
@@ -608,7 +609,8 @@ main_motif_validation() {
 		wait
 	fi
 	find . -type d -empty -delete
-	find ./*/ -size 0 -delete
+	find ./pe -size 0 -delete 2> /dev/null
+	find ./se -size 0 -delete 2> /dev/null
 
 	if [[ "${QC_motif_validated}" =~ summary || "${QC_motif_validated}" =~ full ]]; then
 		if [[ -d ${projdir}/3_motif_validated/pe ]]; then
@@ -853,7 +855,8 @@ main_end_trim() {
 	for i in trimmed_se.*; do mv $i ${i#trimmed_se.}; done
 	cd ../
 	find . -type d -empty -delete
-	find ./*/ -size 0 -delete
+	find ./pe -size 0 -delete
+	find ./se -size 0 -delete
 
 	if [[ "${QC_end_trimmed}" =~ summary || "${QC_end_trimmed}" =~ full ]]; then
 		if [[ -d ${projdir}/4_end_trimmed/pe ]]; then
@@ -1094,7 +1097,8 @@ main_adapter_remove() {
 	for i in se.adapted.*; do mv $i ${i#se.adapted.}; done
 	cd ../
 	find . -type d -empty -delete
-	find ./*/ -size 0 -delete
+	find ./pe -size 0 -delete 2> /dev/null
+	find ./se -size 0 -delete 2> /dev/null
 
 
 	if [[ "${QC_adapter_removed}" =~ summary || "${QC_adapter_removed}" =~ full ]]; then
@@ -1329,7 +1333,8 @@ main_quality_filter() {
 	for i in se.*; do mv $i ${i#se.}; done
 	cd ../
 	find . -type d -empty -delete
-	find ./*/ -size 0 -delete
+	find ./pe -size 0 -delete 2> /dev/null
+	find ./se -size 0 -delete 2> /dev/null
 
 
 	if [[ "${QC_final}" =~ summary || "${QC_final}" =~ full ]]; then
