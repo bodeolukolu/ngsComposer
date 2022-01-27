@@ -246,15 +246,15 @@ for i in $test_fq; do
 done
 if [[ -z "$test_bc" || -z "$test_fq" ]]; then
   echo -e "${magenta}- un-demultiplexed fastq file(s) or file(s) containing barcodes are not listed? ${white}"
-  echo -e "${magenta}- do you want ngsComposer to consider fastq files in samples folder as already demultiplexed? ${white}\n"
+  echo -e "${magenta}- do you want ngsComposer to consider fastq files already demultiplexed? ${white}\n"
   read -p "- y(YES) or n(NO)? " -n 1 -r
   if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     printf '\n'
     echo -e "${magenta}- Exiting ngsComposer ${white}\n"
     sleep 5 && exit 1
   else
-    echo -e "${magenta}- ngsComposer skipping demuliplexing, and will use all fastq files in ./samples, ./samples/pe, and ./samples/se ${white}\n"
-    echo -e "${magenta}- copying files from ${projdir}/samples to ${projdir}/2_demultiplexed. This will take awhile for large files ${white}"
+    echo -e "${magenta}- ngsComposer skipping demuliplexing, and will use all fastq files in ./samples, ./samples/pe, ./samples/se, or 2_demultiplexed ${white}\n"
+    echo -e "${magenta}- copying available files from ${projdir}/samples to ${projdir}/2_demultiplexed. This will take awhile for large files ${white}"
     echo -e "${magenta}- consider exiting (use ctrl+c) and moving files from samples folder to 2_demultiplexed, rather copying ${white}"
     mkdir -p ${projdir}/2_demultiplexed
     cp ${projdir}/samples/* ${projdir}/2_demultiplexed 2> /dev/null
