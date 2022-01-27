@@ -17,27 +17,50 @@ cluster=${cluster//*=}
 ######################################################################################################################################################
 # Software defined parameters
 
-Rout=$(R --version | head -n 3)
-if [ -z "$Rout" ];then
-  echo -e "${white}- R not available ${white}"
-	module add R
-	R --version | head -n 3
+if [ "$cluster" == true ];then
+	module unload R
+  module add R
+  Rversion=$((R --version) 2>&1)
+  if [[ "$Rversion" =~ "R version" ]]; then
+    echo -e "${white}\n- Using $Rversion\n ${white}"
+  fi
 fi
-Rout=$(R --version | head -n 3)
-if [ -z "$Rout" ];then
-  echo -e "${white}- install R before proceeding ${white}"
-  echo -e "${white}- dependencies for R in linux: <sudo apt install libcurl4-openssl-dev> and <sudo apt install libssl-dev>"
+if [ "$cluster" == false ];then
+  Rversion=$((R --version) 2>&1)
+  if [[ "$Rversion" =~ "R version" ]]; then
+    echo -e "${white}\n- Using $Rversion\n ${white}"
+  else
+    echo -e "${white}- install R before proceeding ${white}"
+    echo -e "${white}- dependencies for R in linux: <sudo apt install libcurl4-openssl-dev> and <sudo apt install libssl-dev>"
+  fi
 fi
 
-pythonout=$(python3 --version | head -n 3)
-if [ -z "$pythonout" ];then
-	module add python3
-	python3 --version | head -n 3
+
+
+if [ "$cluster" == true ];then
+	module unload python
+  module add python/3.9.5
+  pythonversion=$((python --version) 2>&1)
+  if [[ "$pythonversion" =~ "Python 3" ]]; then
+    echo -e "${white}\n- Using $pythonversion\n ${white}"
+  else
+    mkdir ~/bin
+    PATH=~/bin:$PATH
+    ln -s /usr/bin/python3 ~/bin/python
+  fi
 fi
-pythonout=$(python3 --version | head -n 3)
-if [ -z "$pythonout" ];then
-  echo -e "${white}- install Python3 before proceeding ${white}"
+if [ "$cluster" == false ];then
+  mkdir ~/bin
+  PATH=~/bin:$PATH
+  ln -s /usr/bin/python3 ~/bin/python
+  pythonversion=$((python --version) 2>&1)
+  if [[ "$pythonversion" =~ "Python 3" ]]; then
+    echo -e "${white}\n- Using $pythonversion\n ${white}"
+  else
+    echo -e "${white}- install python3 before proceeding ${white}"
+  fi
 fi
+
 
 ######################################################################################################################################################
 # tools
@@ -47,15 +70,6 @@ export krill=${ngsComposer_dir}/tools/krill.py
 export porifera=${ngsComposer_dir}/tools/porifera.py
 export rotifer=${ngsComposer_dir}/tools/rotifer.py
 export scallop=${ngsComposer_dir}/tools/scallop.py
-
-pythonout=$(python --version | head -n 3)
-if [[ "$pythonout" =~ python3 ]]; then
-  echo -e "${white}- Using $pythonout ${white}"
-else
-  mkdir ~/bin
-  PATH=~/bin:$PATH
-  ln -s /usr/bin/python3 ~/bin/python
-fi
 
 
 if command -v pigz &>/dev/null; then
