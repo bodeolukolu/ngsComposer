@@ -735,31 +735,23 @@ if [ "$walkaway" == True ]; then
 fi
 
 if [ "$walkaway" == False ]; then
-	echo -e "${magenta}- motif validation was performed with R1_motif="$R1_motif", R2_motif="$R2_motif" ${white}"
+	echo -e "${magenta}- motif validation was performed with R1_motif("$R1_motif") and R2_motif("$R2_motif") ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
-	echo -e "${magenta}- Do you want to skip R1_motif? ${white}"
-	read -p "- y(YES) or n(NO) or <enter_new_motif>? " -n 1 -r
+	echo -e "${magenta}- Do you want to accept R1_motif validation? ${white}"
+	read -p "- y(YES) or <enter_new_motif>? " -n 1 -r
 	if [[ $REPLY =~ ^[Yy]$ ]]; then
 		R1_motif_new=""; printf "\n"
 	else
-		if [[ $REPLY =~ ^[Nn]$ ]]; then
-			R1_motif_new=$R1_motif
-		else
-			R1_motif_new=$REPLY; printf "\n"
-		fi
+		R1_motif_new=$REPLY; printf "\n"
 	fi
-	echo -e "${magenta}- Do you want to avoid using R2_motif? ${white}"
-	read -p "- y(YES) or n(NO) or <enter_new_motif>? " -n 1 -r
+	echo -e "${magenta}- Do you want to accept R2_motif validation? ${white}"
+	read -p "- y(YES) or <enter_new_motif>? " -n 1 -r
 	if [[ $REPLY =~ ^[Yy]$ ]]; then
 		R2_motif_new=""; printf "\n"
 	else
-		if [[ $REPLY =~ ^[Nn]$ ]]; then
-			R2_motif_new=$R2_motif
-		else
-			R2_motif_new=$REPLY; printf "\n"
-		fi
+		R2_motif_new=$REPLY; printf "\n"
 	fi
-	if [[-z "$R1_motif_new" && -z "$R2_motif_new" ]]; then
+	if [[ -z "$R1_motif_new" && -z "$R2_motif_new" ]]; then
 		echo -e "${magenta}- ngsComposer will replace output from motif_validation with demultiplexing output, i.e. skipping motif_validation ${white}"
 		rm -rf ${projdir}/3_motif_validated/pe 2> /dev/null
 		rm -rf ${projdir}/3_motif_validated/se 2> /dev/null
@@ -982,7 +974,7 @@ fi
 
 
 if [ "$walkaway" == False ]; then
-	echo -e "${magenta}- end trimming was performed with end_score="$end_score" window="$window" min_len="$min_len" ${white}"
+	echo -e "${magenta}- end trimming was performed with end_score="$end_score", window="$window", and min_len="$min_len" ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
 	echo -e "${magenta}- Do you want to change end_score value? ${white}"
 	read -p "- n(NO) or <enter_new_value>? " -n 1 -r
@@ -991,14 +983,14 @@ if [ "$walkaway" == False ]; then
 	else
 		end_score_new=$end_score
 	fi
-	echo -e "${magenta}- Do you want to change window size? ${white}"
+	echo -e "${magenta}\n- Do you want to change window size? ${white}"
 	read -p "- n(NO) or <enter_new_value>? " -n 1 -r
 	if [[ ! $REPLY =~ ^[Nn]$ ]]; then
 		window_new=$REPLY
 	else
 		window_new=$window
 	fi
-	echo -e "${magenta}- Do you want to change min_len value? ${white}"
+	echo -e "${magenta}\n- Do you want to change min_len value? ${white}"
 	read -p "- n(NO) or <enter_new_value>? " -n 1 -r
 	if [[ ! $REPLY =~ ^[Nn]$ ]]; then
 		min_len_new=$REPLY
@@ -1085,7 +1077,7 @@ main_adapter_remove() {
 
 	mv se pre_se
 	mkdir -p se
-	adp_se=$( ls ./pe/se.adapted* | cat - <(ls ./pre_se/se.adapted*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,"");  print}' | sort | uniq)
+	adp_se=$( ls ./pe/se.adapted* | cat - <(ls ./pre_se/adapted*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,"");  print}' | sort | uniq)
 	for i in $adp_se; do
 		cat ./pe/$i ./pre_se/$i > ./se/$i
 	done
