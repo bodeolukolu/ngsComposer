@@ -548,6 +548,7 @@ if [ "$walkaway" == False ]; then
       echo -e "${magenta}- ngsComposer will proceed to the next analytical step ${white}"
       sleep 5
     else
+			echo -e "${magenta}- mismatch=$REPLY ${white}"
       mismatch=$REPLY; printf "\n"; time main_demultiplex &>> log.out
     fi
   fi
@@ -740,6 +741,7 @@ if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- Do you want to accept R1_motif validation? ${white}"
 	read -p "- y(YES) or <enter_new_motif>? " -n 1 -r
 	if [[ $REPLY =~ ^[Yy]$ ]]; then
+		echo -e "${magenta}- R1_motif=$R1_motif_new ${white}"
 		R1_motif_new=""; printf "\n"
 	else
 		R1_motif_new=$REPLY; printf "\n"
@@ -747,6 +749,7 @@ if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- Do you want to accept R2_motif validation? ${white}"
 	read -p "- y(YES) or <enter_new_motif>? " -n 1 -r
 	if [[ $REPLY =~ ^[Yy]$ ]]; then
+		echo -e "${magenta}- R2_motif=$R2_motif_new ${white}"
 		R2_motif_new=""; printf "\n"
 	else
 		R2_motif_new=$REPLY; printf "\n"
@@ -979,6 +982,7 @@ if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- Do you want to change end_score value? ${white}"
 	read -p "- n(NO) or <enter_new_value>? " -n 1 -r
 	if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+		echo -e "${magenta}- end_score_new=$REPLY ${white}"
 		end_score_new=$REPLY
 	else
 		end_score_new=$end_score
@@ -986,6 +990,7 @@ if [ "$walkaway" == False ]; then
 	echo -e "${magenta}\n- Do you want to change window size? ${white}"
 	read -p "- n(NO) or <enter_new_value>? " -n 1 -r
 	if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+		echo -e "${magenta}- window_new=$REPLY ${white}"
 		window_new=$REPLY
 	else
 		window_new=$window
@@ -993,6 +998,7 @@ if [ "$walkaway" == False ]; then
 	echo -e "${magenta}\n- Do you want to change min_len value? ${white}"
 	read -p "- n(NO) or <enter_new_value>? " -n 1 -r
 	if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+		echo -e "${magenta}- min_len_new=$REPLY ${white}"
 		min_len_new=$REPLY
 	else
 		min_len_new=$min_len
@@ -1222,19 +1228,21 @@ if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- Do you want to change adapter_match value? ${white}"
 	read -p "- n(NO) or <enter_new_value>? " -n 1 -r
 	if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+		echo -e "${magenta}- adapter_match_new=$REPLY ${white}"
 		adapter_match_new=$REPLY
 	else
 		adapter_match_new=$adapter_match
 	fi
-	echo -e "${magenta}- Do you want to change min_len value? ${white}"
+	echo -e "${magenta}\n- Do you want to change min_len value? ${white}"
 	read -p "- n(NO) or <enter_new_value>? " -n 1 -r
 	if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+		echo -e "${magenta}- min_len_new=$REPLY ${white}"
 		min_len_new=$REPLY
 	else
 		min_len_new=$min_len
 	fi
 	if [[ "$adapter_match" == "$adapter_match_new" && "$min_len" == "$min_len_new" ]]; then
-		echo -e "${magenta}- ngsComposer will proceed to the next analytical step ${white}"
+		echo -e "${magenta}\n- ngsComposer will proceed to the next analytical step ${white}"
 	else
 		adapter_match=$adapter_match_new
 		min_len=$min_len_new

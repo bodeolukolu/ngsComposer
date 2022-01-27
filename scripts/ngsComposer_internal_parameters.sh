@@ -48,9 +48,15 @@ export porifera=${ngsComposer_dir}/tools/porifera.py
 export rotifer=${ngsComposer_dir}/tools/rotifer.py
 export scallop=${ngsComposer_dir}/tools/scallop.py
 
-mkdir ~/bin
-PATH=~/bin:$PATH
-ln -s /usr/bin/python3 ~/bin/python
+pythonout=$(python --version | head -n 3)
+if [[ "$pythonout" =~ python3 ]]; then
+  echo -e "${white}- Using $pythonout ${white}"
+else
+  mkdir ~/bin
+  PATH=~/bin:$PATH
+  ln -s /usr/bin/python3 ~/bin/python
+fi
+
 
 if command -v pigz &>/dev/null; then
   export gzip=pigz
