@@ -43,7 +43,7 @@ boxplot <- ggplot(qc, aes(x = position, y = score, weight=count, group = positio
   theme_classic()+
   xlab(paste("Read Position\n(Total Number of reads = ",sum,")", sep="")) +
   ylab("Quality Scores (phred+33)")
-suppressMessages(ggsave(filename= paste(qscore_sum, ".png", sep = ""), plot=boxplot, width=15, height= 5, dpi=600))
+ggsave(filename= paste(qscore_sum, ".png", sep = ""), plot=boxplot, width=15, height= 5, dpi=600)
 invisible(gc())
 
 

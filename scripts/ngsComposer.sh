@@ -187,7 +187,7 @@ main_demultiplex() {
     bc_matrix=$(grep -h "$li" config.sh | awk '{gsub(/_R1/,"\t"); print $1"_bc"}')
     bc_matrix=$(grep -h "$bc_matrix" config.sh | awk '{gsub(/=/,"\t"); print $2}')
     if [[ "$test_lib_R2" != False ]]; then
-			lj=$(echo $li | awk '{gsub(/_R1/,"_R2"); print}')
+			lj=$(echo $li | awk '{gsub(/_R1/,"_R2");gsub(/.R1/,".R2"); }1')
 		fi
 
     # obtain number of forward and reverse barcodes; and then annotate each cell with row and column position
@@ -248,20 +248,19 @@ main_demultiplex() {
 		if [[ $multithread_demultiplex == False ]]; then
 			awk '{gsub(/_Row/,"\t"); gsub(/_Column/,"\t"); print}' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk '{print $1}' | sort | uniq > ${projdir}/cat_RC.txt
 			if [[ "$test_lib_R2" != False ]]; then
-				$gunzip -c ${projdir}/samples/"$li" > ./${li%.fastq.gz}.fastq
-				python3 $scallop -r1 ./${li%.fastq.gz}.fastq -f $front_trim && rm ${li%.fastq.gz}.fastq
-				$gunzip -c ${projdir}/samples/"$lj" > ./${lj%.fastq.gz}.fastq
-				python3 $scallop -r1 ./${lj%.fastq.gz}.fastq -f $front_trim && rm ${lj%.fastq.gz}.fastq
+				python3 $scallop -r1 ${projdir}/samples/"$li" -f $front_trim -o ./
+				python3 $scallop -r1 ${projdir}/samples/"$lj" -f $front_trim -o ./
 			else
-				$gunzip -c ${projdir}/samples/"$li" > ./${li%.fastq.gz}.fastq
-				python3 $scallop -r1 ./${li%.fastq.gz}.fastq -f $front_trim && rm ${li%.fastq.gz}.fastq
+				python3 $scallop -r1 ${projdir}/samples/"$li" -f $front_trim -o ./
 			fi
+			wait
 
 			if [[ "$test_lib_R2" != False ]]; then
-				python3 $anemone -r1 ./trimmed_se.${li%.fastq.gz}.fastq -r2 ./trimmed_se.${lj%.fastq.gz}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
+				python3 $anemone -r1 ./trimmed_se.${li%.fastq.gz}.fastq -r2 ./trimmed_se.${lj%.fastq.gz}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./
 			else
-				python3 $anemone -r1 ./trimmed_se.${li%.fastq.gz}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
+				python3 $anemone -r1 ./trimmed_se.${li%.fastq.gz}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./
 			fi
+			wait
 
 			rm trimmed_se*
 			wait
@@ -331,9 +330,9 @@ main_demultiplex() {
 				fi
 
 				if [[ "$test_lib_R2" != False ]]; then
-					python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -r2 ./trimmed_se.R2_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
+					python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -r2 ./trimmed_se.R2_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./
 				else
-					python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt
+					python3 $anemone -r1 ./trimmed_se.R1_${ck}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./
 				fi
 
 				rm trimmed_se*
@@ -417,6 +416,8 @@ main_demultiplex() {
 	find . -type d -empty -delete
 	find ./pe -size 0 -delete 2> /dev/null
 	find ./se -size 0 -delete 2> /dev/null
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
 
 	if [[ "${QC_demultiplexed}" =~ summary || "${QC_demultiplexed}" =~ full ]]; then
 		cd unknown
@@ -612,6 +613,8 @@ main_motif_validation() {
 	find . -type d -empty -delete
 	find ./pe -size 0 -delete 2> /dev/null
 	find ./se -size 0 -delete 2> /dev/null
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
 
 	if [[ "${QC_motif_validated}" =~ summary || "${QC_motif_validated}" =~ full ]]; then
 		if [[ -d ${projdir}/3_motif_validated/pe ]]; then
@@ -837,8 +840,11 @@ main_end_trim() {
 
 	mv se pre_se
 	mkdir -p se
-	etm_se=$( ls ./pe/trimmed_se* | cat - <(ls ./pre_se/trimmed_se*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,"");  print}' | sort | uniq)
+	etm_se=$( ls ./pe/trimmed_se* | cat - <(ls ./pre_se/trimmed_se*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/trimmed_se/,"");}1' | sort | uniq)
 	for i in $etm_se; do
+		if [[ -f ./pe/trimmed_se.${i} && -f ./pre_se/trimmed_se.${i} ]]; then cat ./pe/trimmed_se.${i} ./pre_se/trimmed_se.${i} > ./se/$i; fi
+		if [[ -f ./pe/trimmed_se.${i} && ! -f ./pre_se/trimmed_se.${i} ]]; then mv ./pe/trimmed_se.${i} ./se/$i; fi
+		if [[ ! -f ./pe/trimmed_se.${i} && -f ./pre_se/trimmed_se.${i} ]]; then mv ./pre_se/trimmed_se.${i} ./se/$i; fi
 		cat ./pe/$i ./pre_se/$i > ./se/$i
 	done
 	wait
@@ -846,12 +852,12 @@ main_end_trim() {
 	rm ./pe/trimmed_se*
 	cd ./pe
 	for i in trimmed_pe.*; do mv $i ${i#trimmed_pe.}; done
-	cd ../se
-	for i in trimmed_se.*; do mv $i ${i#trimmed_se.}; done
 	cd ../
 	find . -type d -empty -delete
-	find ./pe -size 0 -delete
-	find ./se -size 0 -delete
+	find ./pe -size 0 -delete 2> /dev/null
+	find ./se -size 0 -delete 2> /dev/null
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
 
 	if [[ "${QC_end_trimmed}" =~ summary || "${QC_end_trimmed}" =~ full ]]; then
 		if [[ -d ${projdir}/4_end_trimmed/pe ]]; then
@@ -1035,8 +1041,20 @@ main_adapter_remove() {
 	mkdir -p pe se
 
 	if [[ ! -d ${projdir}/4_end_trimmed/pe ]]; then mkdir -p ${projdir}/4_end_trimmed/pe; mkdir -p ${projdir}/4_end_trimmed/se; fi
-	if [[ -z "$(ls -A ${projdir}/4_end_trimmed/pe)" ]]; then mv ${projdir}/3_motif_validated/pe/*fastq* ${projdir}/4_end_trimmed/pe/ && 	find ./pe -type d -empty -delete; fi
-	if [[ -z "$(ls -A ${projdir}/4_end_trimmed/se)" ]]; then mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/4_end_trimmed/se/ && 	find ./se -type d -empty -delete; fi
+	if [[ -z "$(ls -A ${projdir}/4_end_trimmed/pe)" ]]; then
+		if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe)" ]] ; then
+			mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/4_end_trimmed/pe/ && 	find ./pe -type d -empty -delete
+		else
+			mv ${projdir}/3_motif_validated/pe/*fastq* ${projdir}/4_end_trimmed/pe/ && 	find ./pe -type d -empty -delete
+		fi
+	fi
+	if [[ -z "$(ls -A ${projdir}/4_end_trimmed/se)" ]]; then
+		if [[ -z "$(ls -A ${projdir}/3_motif_validated/se)" ]] ; then
+			mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/4_end_trimmed/se/ && 	find ./se -type d -empty -delete
+		else
+			mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/4_end_trimmed/se/ && 	find ./se -type d -empty -delete
+		fi
+	fi
 
 
 	if [[ -d "${projdir}/4_end_trimmed/pe" ]]; then
@@ -1083,9 +1101,11 @@ main_adapter_remove() {
 
 	mv se pre_se
 	mkdir -p se
-	adp_se=$( ls ./pe/se.adapted* | cat - <(ls ./pre_se/adapted*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,"");  print}' | sort | uniq)
+	adp_se=$( ls ./pe/se.adapted* | cat - <(ls ./pre_se/adapted*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se.adapted./,"");}1' | awk '{gsub(/adapted./,"");}1' | sort | uniq)
 	for i in $adp_se; do
-		cat ./pe/$i ./pre_se/$i > ./se/$i
+		if [[ -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then cat ./pe/se.adapted.${i} ./pre_se/adapted.${i} > ./se/$i
+		if [[ -f ./pe/se.adapted.${i} && ! -f ./pre_se/adapted.${i} ]]; then mv ./pe/se.adapted.${i} ./se/$i
+		if [[ ! -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then mv ./pre_se/adapted.${i} ./se/$i
 	done
 	rm -rf pre_se
 	rm ./pe/se.adapted*
@@ -1097,6 +1117,8 @@ main_adapter_remove() {
 	find . -type d -empty -delete
 	find ./pe -size 0 -delete 2> /dev/null
 	find ./se -size 0 -delete 2> /dev/null
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
 
 
 	if [[ "${QC_adapter_removed}" =~ summary || "${QC_adapter_removed}" =~ full ]]; then
@@ -1269,8 +1291,28 @@ main_quality_filter() {
 	mkdir -p pe se
 
 	if [[ ! -d ${projdir}/5_adapter_removed/pe ]]; then mkdir -p ${projdir}/5_adapter_removed/pe; mkdir -p ${projdir}/5_adapter_removed/se; fi
-	if [[ -z "$(ls -A ${projdir}/5_adapter_removed/pe)" ]]; then mv ${projdir}/4_end_trimmed/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ./pe -type d -empty -delete; fi
-	if [[ -z "$(ls -A ${projdir}/5_adapter_removed/se)" ]]; then mv ${projdir}/4_end_trimmed/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ./se -type d -empty -delete; fi
+	if [[ -z "$(ls -A ${projdir}/5_adapter_removed/pe)" ]]; then
+		if [[ -z "$(ls -A ${projdir}/4_end_trimmed/pe)" ]] ; then
+			if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe)" ]] ; then
+				mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ./pe -type d -empty -delete
+			else
+				mv ${projdir}/3_motif_validated/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ./pe -type d -empty -delete
+			fi
+		else
+			mv ${projdir}/4_end_trimmed/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ./pe -type d -empty -delete
+		fi
+	fi
+	if [[ -z "$(ls -A ${projdir}/5_adapter_removed/se)" ]]; then
+		if [[ -z "$(ls -A ${projdir}/4_end_trimmed/se)" ]] ; then
+			if [[ -z "$(ls -A ${projdir}/3_motif_validated/se)" ]] ; then
+				mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ./se -type d -empty -delete
+			else
+				mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ./se -type d -empty -delete
+			fi
+		else
+			mv ${projdir}/4_end_trimmed/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ./se -type d -empty -delete
+		fi
+	fi
 
 
 	if [[ -d "${projdir}/5_adapter_removed/pe" ]]; then
@@ -1321,10 +1363,13 @@ main_quality_filter() {
 
 	mv se pre_se
 	mkdir -p se
-	fin_se=$( ls ./pe/se.* | cat - <(ls ./pre_se/se.*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,"");  print}' | sort | uniq)
+	fin_se=$( ls ./pe/se.* | cat - <(ls ./pre_se/se.*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
 	for i in $fin_se; do
-		cat ./pe/$i ./pre_se/$i > ./se/$i
+		if [[ -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then cat ./pe/se.${i} ./pre_se/se.${i} > ./se/$i; fi
+		if [[ -f ./pe/se.${i} && ! -f ./pre_se/se.${i} ]]; then mv ./pe/se.${i} ./se/$i; fi
+		if [[ ! -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then mv ./pre_se/se.${i} ./se/$i; fi
 	done
+
 	rm -rf pre_se
 	rm ./pe/se*
 	cd ./pe
@@ -1335,6 +1380,8 @@ main_quality_filter() {
 	find . -type d -empty -delete
 	find ./pe -size 0 -delete 2> /dev/null
 	find ./se -size 0 -delete 2> /dev/null
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
 
 
 	if [[ "${QC_final}" =~ summary || "${QC_final}" =~ full ]]; then

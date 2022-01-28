@@ -56,6 +56,10 @@ echo -e "${blue}\n############################################## \n- installing 
   R -e 'install.packages("farver", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("digest", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("labeling", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
+  R -e 'install.packages("quantreg", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
+  R -e 'install.packages("SparseM", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
+  R -e 'install.packages("MatrixModels", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
+
 }
 dirtool=./helpers/R_packages/ggplot2
 if [ -d $dirtool ]; then
