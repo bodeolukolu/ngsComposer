@@ -611,10 +611,10 @@ main_motif_validation() {
 		wait
 	fi
 	find . -type d -empty -delete
-	find ./pe -size 0 -delete 2> /dev/null
-	find ./se -size 0 -delete 2> /dev/null
-	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
+	find ./pe -size 0 -delete 2> /dev/null &&
+	find ./se -size 0 -delete 2> /dev/null &&
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
 
 	if [[ "${QC_motif_validated}" =~ summary || "${QC_motif_validated}" =~ full ]]; then
 		if [[ -d ${projdir}/3_motif_validated/pe ]]; then
@@ -840,7 +840,7 @@ main_end_trim() {
 
 	mv se pre_se
 	mkdir -p se
-	etm_se=$( ls ./pe/trimmed_se* | cat - <(ls ./pre_se/trimmed_se*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/trimmed_se/,"");}1' | sort | uniq)
+	etm_se=$( ls ./pe/trimmed_se* | cat - <(ls ./pre_se/trimmed_se*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/trimmed_se./,"");}1' | sort | uniq)
 	for i in $etm_se; do
 		if [[ -f ./pe/trimmed_se.${i} && -f ./pre_se/trimmed_se.${i} ]]; then cat ./pe/trimmed_se.${i} ./pre_se/trimmed_se.${i} > ./se/$i; fi
 		if [[ -f ./pe/trimmed_se.${i} && ! -f ./pre_se/trimmed_se.${i} ]]; then mv ./pe/trimmed_se.${i} ./se/$i; fi
@@ -854,10 +854,10 @@ main_end_trim() {
 	for i in trimmed_pe.*; do mv $i ${i#trimmed_pe.}; done
 	cd ../
 	find . -type d -empty -delete
-	find ./pe -size 0 -delete 2> /dev/null
-	find ./se -size 0 -delete 2> /dev/null
-	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
+	find ./pe -size 0 -delete 2> /dev/null &&
+	find ./se -size 0 -delete 2> /dev/null &&
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
 
 	if [[ "${QC_end_trimmed}" =~ summary || "${QC_end_trimmed}" =~ full ]]; then
 		if [[ -d ${projdir}/4_end_trimmed/pe ]]; then
@@ -1103,9 +1103,9 @@ main_adapter_remove() {
 	mkdir -p se
 	adp_se=$( ls ./pe/se.adapted* | cat - <(ls ./pre_se/adapted*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se.adapted./,"");}1' | awk '{gsub(/adapted./,"");}1' | sort | uniq)
 	for i in $adp_se; do
-		if [[ -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then cat ./pe/se.adapted.${i} ./pre_se/adapted.${i} > ./se/$i
-		if [[ -f ./pe/se.adapted.${i} && ! -f ./pre_se/adapted.${i} ]]; then mv ./pe/se.adapted.${i} ./se/$i
-		if [[ ! -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then mv ./pre_se/adapted.${i} ./se/$i
+		if [[ -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then cat ./pe/se.adapted.${i} ./pre_se/adapted.${i} > ./se/$i; fi
+		if [[ -f ./pe/se.adapted.${i} && ! -f ./pre_se/adapted.${i} ]]; then mv ./pe/se.adapted.${i} ./se/$i; fi
+		if [[ ! -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then mv ./pre_se/adapted.${i} ./se/$i; fi
 	done
 	rm -rf pre_se
 	rm ./pe/se.adapted*
@@ -1115,10 +1115,10 @@ main_adapter_remove() {
 	for i in se.adapted.*; do mv $i ${i#se.adapted.}; done
 	cd ../
 	find . -type d -empty -delete
-	find ./pe -size 0 -delete 2> /dev/null
-	find ./se -size 0 -delete 2> /dev/null
-	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
+	find ./pe -size 0 -delete 2> /dev/null &&
+	find ./se -size 0 -delete 2> /dev/null &&
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
 
 
 	if [[ "${QC_adapter_removed}" =~ summary || "${QC_adapter_removed}" =~ full ]]; then
@@ -1378,10 +1378,10 @@ main_quality_filter() {
 	for i in se.*; do mv $i ${i#se.}; done
 	cd ../
 	find . -type d -empty -delete
-	find ./pe -size 0 -delete 2> /dev/null
-	find ./se -size 0 -delete 2> /dev/null
-	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
+	find ./pe -size 0 -delete 2> /dev/null &&
+	find ./se -size 0 -delete 2> /dev/null &&
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
 
 
 	if [[ "${QC_final}" =~ summary || "${QC_final}" =~ full ]]; then
