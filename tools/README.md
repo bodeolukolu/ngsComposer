@@ -8,14 +8,15 @@ A guide to using the individual tools in the ngsComposer pipeline
 - [Scallop - trimming](#scallop)
 - [Anemone - demultiplexing](#anemone)
 - [Rotifer - motif parsing](#rotifer)
-- [Krill - filtering](#krill)
 - [Porifera - adapter removal](#porifera)
+- [Krill - filtering](#krill)
+
 
 ## Crinoid - nucleotide and Q score summary visualizations
 
 |Variable|Usage|
 |:--|:--|
-|-r1|the full or relative path to R1 or R2 fastq file|
+|-r1|the full or relative path to R1 or R2 fastq or fastq.gz file|
 |-o|the full path to output directory (optional)|
 |-a|create visualizations on existing qscore and nucleotide raw data (optional, requires -r1 input)|
 |-s|type True for phred 64 samples (optional, default phred 33)|
@@ -32,7 +33,7 @@ Crinoid creates three visualizations spanning the entire read length. The first 
 
 |Variable|Usage|
 |:--|:--|
-|-r1|the full or relative path to R1 or R2 fastq file|
+|-r1|the full or relative path to R1 or R2 fastq or fastq.gz file|
 |-f|number of bases to remove from beginning of read (integer)|
 |-b|final position to keep within a read (integer)|
 |-e|end-trim where entire window >= score (integer)|
@@ -113,22 +114,6 @@ $ python3 rotifer.py -r1 1_R1.fastq -r2 1_R2.fastq -m1 TCT TCC -m2 TCT TCC
 
 In the event that input data is paired-end, output files will indicate when pairing has been retained with the "pe" prefix. Reads that have no pair will have the "se" prefix. In the instance that a pe and se naming scheme are both applied to a file name, the leftmost prefix will indicate if a file is paired or single/unpaired (e.g. "**se**.pe.1_R1.fastq" will be unpaired).
 
-## Krill - quality threshold filtering of reads with a percent of bases at or above a defined Q score
-
-|Variable|Usage|
-|:--|:--|
-|-r1|the full or relative path to R1 fastq file|
-|-r2|the full or relative path to R2 fastq file (optional)|
-|-q|the minimum qscore required at a position (integer)|
-|-p|the percent frequency minimum qscore must occur per read (integer)|
-|-o|the full path to output directory (optional)|
-
-Example:
-```bash
-$ python3 krill.py -r1 1_R1.fastq -r2 1_R2.fastq -q 30 -p 95
-```
-
-As with Krill, paired-end output files will indicate when pairing has been retained with the "pe" prefix. Reads that have no pair will have the "se" prefix. In the instance that a pe and se naming scheme are both applied to a file name, the leftmost prefix will indicate if a file is paired or single/unpaired (e.g. "**se**.pe.1_R1.fastq" will be unpaired).
 
 ## Porifera - adapter removal
 
@@ -174,3 +159,21 @@ GCCGTAACCG
 AACCATTCTC
 ```
 *Each of the above sample adapters is presented in 5' to 3' orientation and may have restriction motifs added if desired. Porifera.py creates all reverse-complements before alignment*
+
+
+## Krill - quality threshold filtering of reads with a percent of bases at or above a defined Q score
+
+|Variable|Usage|
+|:--|:--|
+|-r1|the full or relative path to R1 fastq file|
+|-r2|the full or relative path to R2 fastq file (optional)|
+|-q|the minimum qscore required at a position (integer)|
+|-p|the percent frequency minimum qscore must occur per read (integer)|
+|-o|the full path to output directory (optional)|
+
+Example:
+```bash
+$ python3 krill.py -r1 1_R1.fastq -r2 1_R2.fastq -q 30 -p 95
+```
+
+As with Krill, paired-end output files will indicate when pairing has been retained with the "pe" prefix. Reads that have no pair will have the "se" prefix. In the instance that a pe and se naming scheme are both applied to a file name, the leftmost prefix will indicate if a file is paired or single/unpaired (e.g. "**se**.pe.1_R1.fastq" will be unpaired).

@@ -416,8 +416,8 @@ main_demultiplex() {
 	find . -type d -empty -delete
 	find ./pe -size 0 -delete 2> /dev/null
 	find ./se -size 0 -delete 2> /dev/null
-	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done
+	if [[ -d pe ]]; then for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done; fi
+	if [[ -d se ]]; then for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done; fi
 
 	if [[ "${QC_demultiplexed}" =~ summary || "${QC_demultiplexed}" =~ full ]]; then
 		cd unknown
@@ -574,8 +574,8 @@ main_motif_validation() {
 		    $gunzip $mot && $gunzip ${mot%.R1.fastq.gz}.R2.fastq.gz &&
 		    python3 $rotifer -r1 ${mot%.R1.fastq.gz}.R1.fastq -r2 ${mot%.R1.fastq.gz}.R2.fastq -m1 $motifR1 -m2 $motifR2 -o ./ &&
 				motgz=${mot#*/pe/}; motgz=${motgz%.gz} &&
-				$gzip *${motgz} && $gzip *${motgz%.R1.fastq}.R2.fastq &&
-				$gzip ${mot%.R1.fastq.gz}.R1.fastq; $gzip ${mot%.R1.fastq.gz}.R2.fastq
+				$gzip ./*${motgz} && $gzip ./*${motgz%.R1.fastq}.R2.fastq &&
+				$gzip ${mot%.gz}; $gzip ${mot%.R1.fastq.gz}.R2.fastq
 				wait ) &
 				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 					wait
@@ -588,7 +588,7 @@ main_motif_validation() {
 		    $gunzip $mot &&
 				python3 $rotifer -r1 ${mot%.gz} -m1 $motifR1 -o ./ &&
 				motgz=${mot#*/se/}; motgz=${motgz%.gz} &&
-				$gzip *${motgz} &&
+				$gzip ./*${motgz} &&
 				$gzip ${mot%.gz}
 				wait ) &
 				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
@@ -795,14 +795,12 @@ main_end_trim() {
 
 	if [[ -d "${projdir}/3_motif_validated/pe" ]]; then
 		for etm in ${projdir}/3_motif_validated/pe/*.R1.fastq.gz; do (
-			$gunzip $etm && $gunzip ${etm%.R1.fastq.gz}.R2.fastq.gz &&
-			python3 $scallop -r1 ${etm%.R1.fastq.gz}.R1.fastq -r2 ${etm%.R1.fastq.gz}.R2.fastq -e $end_score -w $window -l $min_len -o ./pe/ &&
+			python3 $scallop -r1 ${etm} -e $end_score -w $window -l $min_len -o ./pe/ &&
+			python3 $scallop -r1 ${etm%.R1.fastq.gz}.R2.fastq.gz -e $end_score -w $window -l $min_len -o ./pe/ &&
 			etmgz=${etm#*/pe/}; etmgz=${etmgz%.gz} &&
 			cd pe &&
-			$gzip *${etmgz} && $gzip *${etmgz%.R1.fastq}.R2.fastq &&
+			$gzip ./pe/*${etmgz} && $gzip ./pe/*${etmgz%.R1.fastq}.R2.fastq &&
 			cd ../ &&
-			$gzip ${etm%.R1.fastq.gz}.R1.fastq &&
-			$gzip ${etm%.R1.fastq.gz}.R2.fastq &&
 			wait ) &
 			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 				wait
@@ -812,22 +810,18 @@ main_end_trim() {
 	fi
 	if [[ -d "${projdir}/3_motif_validated/se" ]]; then
 		for etm in ${projdir}/3_motif_validated/se/*.R1.fastq.gz; do (
-			$gunzip $etm &&
-			python3 $scallop -r1 ${etm%.R1.fastq.gz}.R1.fastq -e $end_score -w $window -l $min_len -o ./se/ &&
+			python3 $scallop -r1 ${etm} -e $end_score -w $window -l $min_len -o ./se/ &&
 			etmgz=${etm#*/se/}; etmgz=${etmgz%.gz} &&
 			cd se &&
-			$gzip *${etmgz} &&
+			$gzip ./se/*${etmgz} &&
 			cd ../ &&
-			$gzip ${etm%.R1.fastq.gz}.R1.fastq &&
 			wait
 
 			if [[ -f ${etm%.R1.fastq.gz}.R2.fastq.gz ]]; then
-			  $gunzip ${etm%.R1.fastq.gz}.R2.fastq.gz &&
-				python3 $scallop -r1 ${etm%.R1.fastq.gz}.R2.fastq -e $end_score -w $window -l $min_len -o ./se/ &&
+				python3 $scallop -r1 ${etm%.R1.fastq.gz}.R2.fastq.gz -e $end_score -w $window -l $min_len -o ./se/ &&
 				cd se &&
-				$gzip *${etmgz%.R1.fastq}.R2.fastq &&
+				$gzip ./se/*${etmgz%.R1.fastq}.R2.fastq &&
 				cd ../ &&
-				$gzip ${etm%.R1.fastq.gz}.R2.fastq &&
 				wait
 			fi  ) &
 			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
@@ -836,6 +830,10 @@ main_end_trim() {
 		done
 	fi
 
+	find ./pe -size 0 -delete 2> /dev/null &&
+	find ./se -size 0 -delete 2> /dev/null &&
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
 
 
 	mv se pre_se
@@ -858,6 +856,7 @@ main_end_trim() {
 	find ./se -size 0 -delete 2> /dev/null &&
 	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
 	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+
 
 	if [[ "${QC_end_trimmed}" =~ summary || "${QC_end_trimmed}" =~ full ]]; then
 		if [[ -d ${projdir}/4_end_trimmed/pe ]]; then
@@ -1098,6 +1097,12 @@ main_adapter_remove() {
 			fi
 		done
 	fi
+
+	find ./pe -size 0 -delete 2> /dev/null &&
+	find ./se -size 0 -delete 2> /dev/null &&
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+
 
 	mv se pre_se
 	mkdir -p se
@@ -1359,6 +1364,10 @@ main_quality_filter() {
 		wait
 	fi
 
+	find ./pe -size 0 -delete 2> /dev/null &&
+	find ./se -size 0 -delete 2> /dev/null &&
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
 
 
 	mv se pre_se
