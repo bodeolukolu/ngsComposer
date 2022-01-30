@@ -120,7 +120,7 @@ main_initial_qc() {
 				done
 				wait
 			fi
-			if [[ -d ${projdir}/2_demultiplexed/pe ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/pe/*f*)" ]; then
+				if [[ -d "${projdir}/2_demultiplexed/pe" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/pe/*f*)" ]]; then
 				mkdir -p ${projdir}/2_demultiplexed/pe/qc
 				cd ${projdir}/2_demultiplexed/pe
 				for i in ${projdir}/2_demultiplexed/pe/*.f*; do
@@ -129,7 +129,7 @@ main_initial_qc() {
 				done
 				wait
 			fi
-			if [[ -d ${projdir}/2_demultiplexed/se ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se/*f*)" ]; then
+			if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se/*f*)" ]]; then
 				mkdir -p ${projdir}/2_demultiplexed/se/qc
 				cd ${projdir}/2_demultiplexed/se
 				for i in ${projdir}/2_demultiplexed/se/*.f*; do
