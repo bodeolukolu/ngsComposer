@@ -582,7 +582,7 @@ main_motif_validation() {
 		wait
 	fi
 	if [[ -d "${projdir}/2_demultiplexed/se" ]]; then
-		for mot in ${projdir}/2_demultiplexed/se/*.R1.fastq.
+		for mot in ${projdir}/2_demultiplexed/se/*.R1.fastq.gz; do (
 				python3 $rotifer -r1 ${mot} -m1 $motifR1 -o ./ &&
 				motgz=${mot#*/se/}; motgz=${motgz%.gz} &&
 				wait ) &
