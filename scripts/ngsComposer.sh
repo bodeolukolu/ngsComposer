@@ -566,14 +566,17 @@ main_motif_validation() {
   cd ${projdir}
   mkdir -p 3_motif_validated
   cd 3_motif_validated
+	mkdir -p pe se
   motifR1=$( echo $R1_motif | awk '{gsub(/,/," "); print}')
   motifR2=$( echo $R2_motif | awk '{gsub(/,/," "); print}')
 
 	if [[ -d "${projdir}/2_demultiplexed/pe" ]]; then
 		for mot in ${projdir}/2_demultiplexed/pe/*.R1.fastq.gz; do (
-		    python3 $rotifer -r1 ${mot} -r2 ${mot%.R1.fastq.gz}.R2.fastq.gz -m1 $motifR1 -m2 $motifR2 -o ./ &&
+		    python3 $rotifer -r1 ${mot} -r2 ${mot%.R1.fastq.gz}.R2.fastq.gz -m1 $motifR1 -m2 $motifR2 -o ./pe &&
 				motgz=${mot#*/pe/}; motgz=${motgz%.gz} &&
+				cd pe &&
 				$gzip ./*${motgz} && $gzip ./*${motgz%.R1.fastq}.R2.fastq &&
+				cd ../ &&
 				wait ) &
 				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 					wait
@@ -583,8 +586,11 @@ main_motif_validation() {
 	fi
 	if [[ -d "${projdir}/2_demultiplexed/se" ]]; then
 		for mot in ${projdir}/2_demultiplexed/se/*.R1.fastq.gz; do (
-				python3 $rotifer -r1 ${mot} -m1 $motifR1 -o ./ &&
+				python3 $rotifer -r1 ${mot} -m1 $motifR1 -o ./se &&
 				motgz=${mot#*/se/}; motgz=${motgz%.gz} &&
+				cd se &&
+				$gzip ./*${motgz} &&
+				cd ../ &&
 				wait ) &
 				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 					wait
@@ -592,24 +598,32 @@ main_motif_validation() {
 		done
 		wait
 	fi
+	find ./pe -size 0 -delete 2> /dev/null &&
+	find ./se -size 0 -delete 2> /dev/null &&
+	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
 
 
-	mkdir -p pe se
-	if [[ -d "${projdir}/2_demultiplexed/pe" ]]; then
-		for i in pe.*; do mv $i ./pe/${i#pe.}; done
-		wait
-		for i in se.*; do mv $i ./se/${i#se.}; done
-		wait
-	fi
-	if [[ -d "${projdir}/2_demultiplexed/se" ]]; then
-		for i in se.*; do mv $i ./se/${i#se.}; done
-		wait
-	fi
+	mv se pre_se
+	mkdir -p se
+	mot_se=$( ls ./pe/se* | cat - <(ls ./pre_se/se*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
+	for i in $mot_se; do
+		if [[ -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then cat ./pe/se.${i} ./pre_se/se.${i} > ./se/$i; fi
+		if [[ -f ./pe/se.${i} && ! -f ./pre_se/se.${i} ]]; then mv ./pe/se.${i} ./se/$i; fi
+		if [[ ! -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then mv ./pre_se/se.${i} ./se/$i; fi
+	done
+	wait
+	rm -rf pre_se
+	rm ./pe/se*
+	cd ./pe
+	for i in pe.*; do mv $i ${i#pe.}; done
+	cd ../
 	find . -type d -empty -delete
 	find ./pe -size 0 -delete 2> /dev/null &&
 	find ./se -size 0 -delete 2> /dev/null &&
 	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
 	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+
 
 	if [[ "${QC_motif_validated}" =~ summary || "${QC_motif_validated}" =~ full ]]; then
 		if [[ -d ${projdir}/3_motif_validated/pe ]]; then
