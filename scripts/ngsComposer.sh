@@ -584,7 +584,7 @@ main_motif_validation() {
 		done
 		wait
 	fi
-	if [[ -d "${projdir}/2_demultiplexed/se" ]]; then
+	if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se)" ]]; then
 		for mot in ${projdir}/2_demultiplexed/se/*.R1.fastq.gz; do (
 				python3 $rotifer -r1 ${mot} -m1 $motifR1 -o ./se &&
 				motgz=${mot#*/se/}; motgz=${motgz%.gz} &&
@@ -601,7 +601,12 @@ main_motif_validation() {
 	find ./pe -size 0 -delete 2> /dev/null &&
 	find ./se -size 0 -delete 2> /dev/null &&
 	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se)" ]]; then
+		for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+		wait
+	else
+		touch ./se/se.
+	fi
 
 
 	mv se pre_se
@@ -623,7 +628,7 @@ main_motif_validation() {
 	find ./se -size 0 -delete 2> /dev/null &&
 	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
 	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
-
+	wait
 
 	if [[ "${QC_motif_validated}" =~ summary || "${QC_motif_validated}" =~ full ]]; then
 		if [[ -d ${projdir}/3_motif_validated/pe ]]; then
