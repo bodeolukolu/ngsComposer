@@ -612,6 +612,7 @@ main_motif_validation() {
 	mv se pre_se
 	mkdir -p se
 	mot_se=$( ls ./pe/se* | cat - <(ls ./pre_se/se*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
+	rm ./pre_se/se.
 	for i in $mot_se; do
 		if [[ -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then cat ./pe/se.${i} ./pre_se/se.${i} > ./se/$i; fi
 		if [[ -f ./pe/se.${i} && ! -f ./pre_se/se.${i} ]]; then mv ./pe/se.${i} ./se/$i; fi
