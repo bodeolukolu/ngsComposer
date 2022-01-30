@@ -807,7 +807,7 @@ main_end_trim() {
 			python3 $scallop -r1 ${etm} -e $end_score -w $window -l $min_len -o ./se/ &&
 			etmgz=${etm#*/se/}; etmgz=${etmgz%.gz} &&
 			cd se &&
-			$gzip ./${etmgz} &&
+			$gzip ./*${etmgz} &&
 			cd ../ &&
 			wait
 
