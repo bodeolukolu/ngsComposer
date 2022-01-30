@@ -111,27 +111,32 @@ main_initial_qc() {
 	test_fq=$(grep '^lib' config.sh | grep '_R' | awk '{gsub(/=/,"\t"); print $2}')
 	if [[ -z "$test_bc" || -z "$test_fq" ]]; then
 		if [[ -d  2_demultiplexed ]]; then
-			if [ "$(ls -A 2_demultiplexed)" ]; then
+			if [ "$(ls -A ${projdir}/2_demultiplexed/*f*)" ]; then
 				cd 2_demultiplexed
 				mkdir -p qc
 				for i in *.f*; do
 					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
 					wait $PIDR1
 				done
-				if [[ -d pe ]]; then
-					mkdir -p ./pe/qc
-					for i in ./pe/*.f*; do
-						python3 $crinoid -r1 $i -t ${threads} -o ./pe/qc & PIDR1=$!
-						wait $PIDR1
-					done
-				fi
-				if [[ -d se ]]; then
-					mkdir -p ./se/qc
-					for i in ./se/*.f*; do
-						python3 $crinoid -r1 $i -t ${threads} -o ./se/qc & PIDR1=$!
-						wait $PIDR1
-					done
-				fi
+				wait
+			fi
+			if [[ -d ${projdir}/2_demultiplexed/pe ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/pe/*f*)" ]; then
+				mkdir -p ${projdir}/2_demultiplexed/pe/qc
+				cd ${projdir}/2_demultiplexed/pe
+				for i in ${projdir}/2_demultiplexed/pe/*.f*; do
+					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
+					wait $PIDR1
+				done
+				wait
+			fi
+			if [[ -d ${projdir}/2_demultiplexed/se ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se/*f*)" ]; then
+				mkdir -p ${projdir}/2_demultiplexed/se/qc
+				cd ${projdir}/2_demultiplexed/se
+				for i in ${projdir}/2_demultiplexed/se/*.f*; do
+					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
+					wait $PIDR1
+				done
+				wait
 			fi
 		fi
 	else
