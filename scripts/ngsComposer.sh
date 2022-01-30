@@ -613,6 +613,9 @@ main_motif_validation() {
 	mkdir -p se
 	mot_se=$( ls ./pe/se* | cat - <(ls ./pre_se/se*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
 	rm ./pre_se/se.
+	if [[ ! "$(ls -A ./pre_se/)" ]]; then
+		rmdir pre_se
+	fi
 	for i in $mot_se; do
 		if [[ -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then cat ./pe/se.${i} ./pre_se/se.${i} > ./se/$i; fi
 		if [[ -f ./pe/se.${i} && ! -f ./pre_se/se.${i} ]]; then mv ./pe/se.${i} ./se/$i; fi
@@ -628,7 +631,10 @@ main_motif_validation() {
 	find ./pe -size 0 -delete 2> /dev/null &&
 	find ./se -size 0 -delete 2> /dev/null &&
 	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se)" ]]; then
+		for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+		wait
+	fi
 	wait
 
 	if [[ "${QC_motif_validated}" =~ summary || "${QC_motif_validated}" =~ full ]]; then
