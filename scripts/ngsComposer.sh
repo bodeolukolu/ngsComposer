@@ -868,7 +868,6 @@ main_end_trim() {
 		if [[ -f ./pe/trimmed_se.${i} && -f ./pre_se/trimmed_se.${i} ]]; then cat ./pe/trimmed_se.${i} ./pre_se/trimmed_se.${i} > ./se/$i; fi
 		if [[ -f ./pe/trimmed_se.${i} && ! -f ./pre_se/trimmed_se.${i} ]]; then mv ./pe/trimmed_se.${i} ./se/$i; fi
 		if [[ ! -f ./pe/trimmed_se.${i} && -f ./pre_se/trimmed_se.${i} ]]; then mv ./pre_se/trimmed_se.${i} ./se/$i; fi
-		cat ./pe/$i ./pre_se/$i > ./se/$i
 	done
 	wait
 	rm -rf pre_se
