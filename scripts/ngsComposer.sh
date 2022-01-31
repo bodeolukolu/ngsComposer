@@ -622,13 +622,13 @@ main_motif_validation() {
 		rmdir pre_se
 	fi
 	for i in $mot_se; do
-		if [[ -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then cat ./pe/se.${i} ./pre_se/se.${i} > ./se/$i; fi
-		if [[ -f ./pe/se.${i} && ! -f ./pre_se/se.${i} ]]; then mv ./pe/se.${i} ./se/$i; fi
-		if [[ ! -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then mv ./pre_se/se.${i} ./se/$i; fi
+		if [[ -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then cat ./pe/se.${i} ./pre_se/se.${i} > ./se/$i; rm ./pe/se.${i}; fi &&
+		if [[ -f ./pe/se.${i} && ! -f ./pre_se/se.${i} ]]; then mv ./pe/se.${i} ./se/$i; fi &&
+		if [[ ! -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then mv ./pre_se/se.${i} ./se/$i; fi &&
+		wait
 	done
 	wait
 	rm -rf pre_se
-	rm ./pe/se*
 	cd ./pe
 	for i in pe.*; do mv $i ${i#pe.}; done
 	cd ../
@@ -865,9 +865,10 @@ main_end_trim() {
 	mkdir -p se
 	etm_se=$( ls ./pe/trimmed_se* | cat - <(ls ./pre_se/trimmed_se*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/trimmed_se./,"");}1' | sort | uniq)
 	for i in $etm_se; do
-		if [[ -f ./pe/trimmed_se.${i} && -f ./pre_se/trimmed_se.${i} ]]; then cat ./pe/trimmed_se.${i} ./pre_se/trimmed_se.${i} > ./se/$i; fi
-		if [[ -f ./pe/trimmed_se.${i} && ! -f ./pre_se/trimmed_se.${i} ]]; then mv ./pe/trimmed_se.${i} ./se/$i; fi
-		if [[ ! -f ./pe/trimmed_se.${i} && -f ./pre_se/trimmed_se.${i} ]]; then mv ./pre_se/trimmed_se.${i} ./se/$i; fi
+		if [[ -f ./pe/trimmed_se.${i} && -f ./pre_se/trimmed_se.${i} ]]; then cat ./pe/trimmed_se.${i} ./pre_se/trimmed_se.${i} > ./se/$i; fi &&
+		if [[ -f ./pe/trimmed_se.${i} && ! -f ./pre_se/trimmed_se.${i} ]]; then mv ./pe/trimmed_se.${i} ./se/$i; fi &&
+		if [[ ! -f ./pe/trimmed_se.${i} && -f ./pre_se/trimmed_se.${i} ]]; then mv ./pre_se/trimmed_se.${i} ./se/$i; fi &&
+		wait
 	done
 	wait
 	rm -rf pre_se
@@ -1125,9 +1126,10 @@ main_adapter_remove() {
 	mkdir -p se
 	adp_se=$( ls ./pe/se.adapted* | cat - <(ls ./pre_se/adapted*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se.adapted./,"");}1' | awk '{gsub(/adapted./,"");}1' | sort | uniq)
 	for i in $adp_se; do
-		if [[ -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then cat ./pe/se.adapted.${i} ./pre_se/adapted.${i} > ./se/$i; fi
-		if [[ -f ./pe/se.adapted.${i} && ! -f ./pre_se/adapted.${i} ]]; then mv ./pe/se.adapted.${i} ./se/$i; fi
-		if [[ ! -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then mv ./pre_se/adapted.${i} ./se/$i; fi
+		if [[ -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then cat ./pe/se.adapted.${i} ./pre_se/adapted.${i} > ./se/$i; fi &&
+		if [[ -f ./pe/se.adapted.${i} && ! -f ./pre_se/adapted.${i} ]]; then mv ./pe/se.adapted.${i} ./se/$i; fi &&
+		if [[ ! -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then mv ./pre_se/adapted.${i} ./se/$i; fi &&
+		wait
 	done
 	rm -rf pre_se
 	rm ./pe/se.adapted*
@@ -1385,17 +1387,15 @@ main_quality_filter() {
 	mkdir -p se
 	fin_se=$( ls ./pe/se.* | cat - <(ls ./pre_se/se.*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
 	for i in $fin_se; do
-		if [[ -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then cat ./pe/se.${i} ./pre_se/se.${i} > ./se/$i; fi
-		if [[ -f ./pe/se.${i} && ! -f ./pre_se/se.${i} ]]; then mv ./pe/se.${i} ./se/$i; fi
-		if [[ ! -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then mv ./pre_se/se.${i} ./se/$i; fi
+		if [[ -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then cat ./pe/se.${i} ./pre_se/se.${i} > ./se/$i; rm ./pe/se.${i}; fi &&
+		if [[ -f ./pe/se.${i} && ! -f ./pre_se/se.${i} ]]; then mv ./pe/se.${i} ./se/$i; fi &&
+		if [[ ! -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then mv ./pre_se/se.${i} ./se/$i; fi &&
+		wait
 	done
 
 	rm -rf pre_se
-	rm ./pe/se*
 	cd ./pe
 	for i in pe.*; do mv $i ${i#pe.}; done
-	cd ../se
-	for i in se.*; do mv $i ${i#se.}; done
 	cd ../
 	find . -type d -empty -delete
 	find ./pe -size 0 -delete 2> /dev/null &&
