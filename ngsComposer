@@ -179,9 +179,15 @@ samples_alt_dir=${samples_alt_dir//*=}
 if [[ ! -d samples ]]; then
   if [[ -z $samples_alt_dir || $samples_alt_dir =~ False ]]; then
     echo -e "${magenta}- samples folder is missing and not specified ${white}\n"
-    echo -e "${magenta}- move raw or demultiplexed fastq files into a folder named samples in project_directory ${white}\n"
-    echo -e "${magenta}- ngsComposer will quit in 5 seconds ${white}\n"
-    sleep 5; exit 0
+    echo -e "${magenta}- move raw or multiplexed fastq files into a folder named samples in project_directory ${white}\n"
+    echo -e "${magenta}- checking if demultiplexed files already exist in ${projdir}/2_demultiplexed/pe and/or ${projdir}/2_demultiplexed/se ${white}\n"
+    if [[ ! "$(ls -A ${projdir}/2_demultiplexed/pe/*f*)" ]]; then
+      if [[ ! "$(ls -A ${projdir}/2_demultiplexed/se/*f*)" ]]; then
+        echo -e "${magenta}- no fastq file provided ${white}\n"
+        echo -e "${magenta}- ngsComposer will quit in 5 seconds ${white}\n"
+        sleep 5; exit 0
+      fi
+    fi
   fi
 fi
 if [[ -z $samples_alt_dir || $samples_alt_dir =~ False ]]; then
@@ -253,11 +259,19 @@ if [[ -z "$test_bc" || -z "$test_fq" ]]; then
     echo -e "${magenta}- Exiting ngsComposer ${white}\n"
     sleep 5 && exit 1
   else
-    echo -e "${magenta}- ngsComposer skipping demuliplexing, and will use all fastq files in ./samples, ./samples/pe, ./samples/se, or 2_demultiplexed ${white}\n"
-    echo -e "${magenta}- copying available files from ${projdir}/samples to ${projdir}/2_demultiplexed. This will take awhile for large files ${white}"
-    echo -e "${magenta}- consider exiting (use ctrl+c) and moving files from samples folder to 2_demultiplexed, rather copying ${white}"
-    mkdir -p ${projdir}/2_demultiplexed
-    cp ${projdir}/samples/* ${projdir}/2_demultiplexed 2> /dev/null
+    echo -e "${magenta}- ngsComposer skipping demuliplexing, and will use all fastq files as demultiplexed or not multiplexed ${white}\n"
+    if [[ ! -d "${projdir}/2_demultiplexed" ]]; then
+      echo -e "${magenta}- provide files in directory ${projdir}/2_demultiplexed/pe and/or ${projdir}/2_demultiplexed/se  ${white}"
+      printf '\n'
+      echo -e "${magenta}- Exiting ngsComposer ${white}\n"
+      sleep 5 && exit 1
+    fi
+    if [ "$(ls -A ${projdir}/2_demultiplexed/*f*)" ]; then
+      echo -e "${magenta}- move fastq files into directory pe and/or se  ${white}"
+      printf '\n'
+      echo -e "${magenta}- Exiting ngsComposer ${white}\n"
+      sleep 5 && exit 1
+    fi
   fi
 fi
 

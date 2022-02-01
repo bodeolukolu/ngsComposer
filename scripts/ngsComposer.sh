@@ -111,19 +111,11 @@ main_initial_qc() {
 	test_fq=$(grep '^lib' config.sh | grep '_R' | awk '{gsub(/=/,"\t"); print $2}')
 	if [[ -z "$test_bc" || -z "$test_fq" ]]; then
 		if [[ -d  2_demultiplexed ]]; then
-			if [ "$(ls -A ${projdir}/2_demultiplexed/*f*)" ]; then
-				cd 2_demultiplexed
-				mkdir -p qc
-				for i in *.f*; do
-					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
-					wait $PIDR1
-				done
-				wait
-			fi
-				if [[ -d "${projdir}/2_demultiplexed/pe" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/pe/*f*)" ]]; then
+			if [[ -d "${projdir}/2_demultiplexed/pe" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/pe/*f*)" ]]; then
 				mkdir -p ${projdir}/2_demultiplexed/pe/qc
 				cd ${projdir}/2_demultiplexed/pe
-				for i in ${projdir}/2_demultiplexed/pe/*.f*; do
+				for i in *f*; then var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var; done
+				for i in *.f*; do
 					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
 					wait $PIDR1
 				done
@@ -132,7 +124,8 @@ main_initial_qc() {
 			if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se/*f*)" ]]; then
 				mkdir -p ${projdir}/2_demultiplexed/se/qc
 				cd ${projdir}/2_demultiplexed/se
-				for i in ${projdir}/2_demultiplexed/se/*.f*; do
+				for i in *f*; then var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var; done
+				for i in *.f*; do
 					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
 					wait $PIDR1
 				done
@@ -143,7 +136,6 @@ main_initial_qc() {
 
 		cd ${projdir}
 		mkdir -p 1_initial_qc
-
 		list_lib=$(grep '^lib' config.sh | grep '_R1=' | awk '{gsub(/=/,"\t"); print $2}')
 		for li in $list_lib; do
 			python3 $crinoid -r1 ./samples/${li} -t $((threads/2)) -o ./1_initial_qc & PIDR1=$!
