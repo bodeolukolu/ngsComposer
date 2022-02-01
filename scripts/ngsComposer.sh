@@ -114,7 +114,7 @@ main_initial_qc() {
 			if [[ -d "${projdir}/2_demultiplexed/pe" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/pe/*f*)" ]]; then
 				mkdir -p ${projdir}/2_demultiplexed/pe/qc
 				cd ${projdir}/2_demultiplexed/pe
-				for i in *f*; then var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var; done
+				for i in *f*; do var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var; done
 				for i in *.f*; do
 					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
 					wait $PIDR1
@@ -124,7 +124,7 @@ main_initial_qc() {
 			if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se/*f*)" ]]; then
 				mkdir -p ${projdir}/2_demultiplexed/se/qc
 				cd ${projdir}/2_demultiplexed/se
-				for i in *f*; then var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var; done
+				for i in *f*; do var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var; done
 				for i in *.f*; do
 					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
 					wait $PIDR1
@@ -814,6 +814,7 @@ main_end_trim() {
 	if [[ -z "$(ls -A ${projdir}/3_motif_validated/se)" ]]; then mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/3_motif_validated/se/ && 	find ./se -type d -empty -delete; fi
 	if [[ "$rm_transit" == True ]]; then
 		rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
+		rm ${projdir}/2_demultiplexed/se/*fastq* 2> /dev/null
 	fi
 
 	if [[ -d "${projdir}/3_motif_validated/pe" ]]; then
@@ -1080,6 +1081,7 @@ main_adapter_remove() {
 
 	if [[ "$rm_transit" == True ]]; then
 		rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
+		rm ${projdir}/2_demultiplexed/se/*fastq* 2> /dev/null
 		rm ${projdir}/3_motif_validated/pe/*fastq* 2> /dev/null
 		rm ${projdir}/3_motif_validated/se/*fastq* 2> /dev/null
 	fi
@@ -1345,6 +1347,7 @@ main_quality_filter() {
 
 	if [[ "$rm_transit" == True ]]; then
 		rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
+		rm ${projdir}/2_demultiplexed/se/*fastq* 2> /dev/null
 		rm ${projdir}/3_motif_validated/pe/*fastq* 2> /dev/null
 		rm ${projdir}/3_motif_validated/se/*fastq* 2> /dev/null
 		rm ${projdir}/4_end_trimmed/pe/*fastq* 2> /dev/null
