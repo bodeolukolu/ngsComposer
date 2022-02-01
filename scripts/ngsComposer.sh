@@ -101,6 +101,14 @@ else
 fi
 
 
+if [[ -d "${projdir}/2_demultiplexed/pe" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/pe/*f* 2> /dev/null)" ]]; then
+	for i in ${projdir}/2_demultiplexed/pe/*f*; do var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var; done
+fi
+if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se/*f* 2> /dev/null)" ]]; then
+	for i in ${projdir}/2_demultiplexed/se/*f*; do var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var; done
+fi
+
+
 ######################################################################################################################################################
 echo -e "${blue}\n############################################################################## ${yellow}\n- performing Intitial QC of library/libraries\n${blue}##############################################################################${white}\n"
 
@@ -111,20 +119,18 @@ main_initial_qc() {
 	test_fq=$(grep '^lib' config.sh | grep '_R' | awk '{gsub(/=/,"\t"); print $2}')
 	if [[ -z "$test_bc" || -z "$test_fq" ]]; then
 		if [[ -d  2_demultiplexed ]]; then
-			if [[ -d "${projdir}/2_demultiplexed/pe" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/pe/*f*)" ]]; then
+			if [[ -d "${projdir}/2_demultiplexed/pe" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/pe/*f* 2> /dev/null)" ]]; then
 				mkdir -p ${projdir}/2_demultiplexed/pe/qc
 				cd ${projdir}/2_demultiplexed/pe
-				for i in *f*; do var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var; done
 				for i in *.f*; do
 					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
 					wait $PIDR1
 				done
 				wait
 			fi
-			if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se/*f*)" ]]; then
+			if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se/*f* 2> /dev/null)" ]]; then
 				mkdir -p ${projdir}/2_demultiplexed/se/qc
 				cd ${projdir}/2_demultiplexed/se
-				for i in *f*; do var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var; done
 				for i in *.f*; do
 					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
 					wait $PIDR1
