@@ -810,8 +810,8 @@ main_end_trim() {
 	mkdir -p pe se
 
 	if [[ ! -d ${projdir}/3_motif_validated ]]; then mkdir -p ${projdir}/3_motif_validated/pe; mkdir -p ${projdir}/3_motif_validated/se; fi
-	if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe)" ]]; then mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/3_motif_validated/pe/ && 	find ./pe -type d -empty -delete; fi
-	if [[ -z "$(ls -A ${projdir}/3_motif_validated/se)" ]]; then mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/3_motif_validated/se/ && 	find ./se -type d -empty -delete; fi
+	if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe)" ]]; then mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/3_motif_validated/pe/ && 	find ${projdir}/3_motif_validated/pe/ -type d -empty -delete; fi
+	if [[ -z "$(ls -A ${projdir}/3_motif_validated/se)" ]]; then mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/3_motif_validated/se/ && 	find ${projdir}/3_motif_validated/se/ -type d -empty -delete; fi
 	if [[ "$rm_transit" == True ]]; then
 		rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
 		rm ${projdir}/2_demultiplexed/se/*fastq* 2> /dev/null
@@ -1066,16 +1066,16 @@ main_adapter_remove() {
 	if [[ ! -d ${projdir}/4_end_trimmed/pe ]]; then mkdir -p ${projdir}/4_end_trimmed/pe; mkdir -p ${projdir}/4_end_trimmed/se; fi
 	if [[ -z "$(ls -A ${projdir}/4_end_trimmed/pe)" ]]; then
 		if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe)" ]] ; then
-			mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/4_end_trimmed/pe/ && 	find ./pe -type d -empty -delete
+			mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/4_end_trimmed/pe/ && 	find ${projdir}/4_end_trimmed/pe -type d -empty -delete
 		else
-			mv ${projdir}/3_motif_validated/pe/*fastq* ${projdir}/4_end_trimmed/pe/ && 	find ./pe -type d -empty -delete
+			mv ${projdir}/3_motif_validated/pe/*fastq* ${projdir}/4_end_trimmed/pe/ && 	find ${projdir}/4_end_trimmed/pe -type d -empty -delete
 		fi
 	fi
 	if [[ -z "$(ls -A ${projdir}/4_end_trimmed/se)" ]]; then
 		if [[ -z "$(ls -A ${projdir}/3_motif_validated/se)" ]] ; then
-			mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/4_end_trimmed/se/ && 	find ./se -type d -empty -delete
+			mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/4_end_trimmed/se/ && 	find ${projdir}/4_end_trimmed/se -type d -empty -delete
 		else
-			mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/4_end_trimmed/se/ && 	find ./se -type d -empty -delete
+			mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/4_end_trimmed/se/ && 	find ${projdir}/4_end_trimmed/se -type d -empty -delete
 		fi
 	fi
 
@@ -1325,23 +1325,23 @@ main_quality_filter() {
 	if [[ -z "$(ls -A ${projdir}/5_adapter_removed/pe)" ]]; then
 		if [[ -z "$(ls -A ${projdir}/4_end_trimmed/pe)" ]] ; then
 			if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe)" ]] ; then
-				mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ./pe -type d -empty -delete
+				mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ${projdir}/5_adapter_removed/pe -type d -empty -delete
 			else
-				mv ${projdir}/3_motif_validated/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ./pe -type d -empty -delete
+				mv ${projdir}/3_motif_validated/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ${projdir}/5_adapter_removed/pe -type d -empty -delete
 			fi
 		else
-			mv ${projdir}/4_end_trimmed/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ./pe -type d -empty -delete
+			mv ${projdir}/4_end_trimmed/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ${projdir}/5_adapter_removed/pe -type d -empty -delete
 		fi
 	fi
 	if [[ -z "$(ls -A ${projdir}/5_adapter_removed/se)" ]]; then
 		if [[ -z "$(ls -A ${projdir}/4_end_trimmed/se)" ]] ; then
 			if [[ -z "$(ls -A ${projdir}/3_motif_validated/se)" ]] ; then
-				mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ./se -type d -empty -delete
+				mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ${projdir}/5_adapter_removed/se -type d -empty -delete
 			else
-				mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ./se -type d -empty -delete
+				mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ${projdir}/5_adapter_removed/se -type d -empty -delete
 			fi
 		else
-			mv ${projdir}/4_end_trimmed/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ./se -type d -empty -delete
+			mv ${projdir}/4_end_trimmed/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ${projdir}/5_adapter_removed/se -type d -empty -delete
 		fi
 	fi
 
