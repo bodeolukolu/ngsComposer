@@ -155,6 +155,7 @@ main_initial_qc() {
 			wait $PIDR2
 		done
 	fi
+	echo "intial QC complete" > ${projdir}/1_initial_qc_complete
 }
 cd $projdir
 if [ "$walkaway" == False ]; then
@@ -488,6 +489,7 @@ main_demultiplex() {
 		mv *_summary* ./summary/
 		find . -type d -empty -delete
 	fi
+	echo "demultiplexed complete" > ${projdir}/2_demultiplexed_complete
 
 }
 cd $projdir
@@ -740,6 +742,7 @@ main_motif_validation() {
 			find . -type d -empty -delete
 		fi
 	fi
+	echo "motif validation complete" > ${projdir}/3_motif_validation_complete
 
 }
 cd $projdir
@@ -799,7 +802,7 @@ if [ "$walkaway" == False ]; then
 	fi
 fi
 
-if [[ "$rm_transit" == True ]]; then
+if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/3_motif_validation_complete" ]]; then
 	rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
 fi
 
@@ -817,7 +820,9 @@ main_end_trim() {
 	if [[ ! -d ${projdir}/3_motif_validated ]]; then mkdir -p ${projdir}/3_motif_validated/pe; mkdir -p ${projdir}/3_motif_validated/se; fi
 	if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe)" ]]; then mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/3_motif_validated/pe/ && 	find ./pe -type d -empty -delete; fi
 	if [[ -z "$(ls -A ${projdir}/3_motif_validated/se)" ]]; then mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/3_motif_validated/se/ && 	find ./se -type d -empty -delete; fi
-
+	if [[ "$rm_transit" == True ]]; then
+		rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
+	fi
 
 	if [[ -d "${projdir}/3_motif_validated/pe" ]]; then
 		for etm in ${projdir}/3_motif_validated/pe/*.R1.fastq.gz; do (
@@ -981,6 +986,7 @@ main_end_trim() {
 			find . -type d -empty -delete
 		fi
 	fi
+	echo "end trimming complete" > ${projdir}/4_end_trimming_complete
 
 }
 cd $projdir
@@ -1044,7 +1050,7 @@ if [ "$walkaway" == False ]; then
 fi
 
 
-if [[ "$rm_transit" == True ]]; then
+if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/4_end_trimming_complete" ]]; then
 	rm ${projdir}/3_motif_validated/pe/*fastq* 2> /dev/null
 	rm ${projdir}/3_motif_validated/se/*fastq* 2> /dev/null
 fi
@@ -1078,6 +1084,12 @@ main_adapter_remove() {
 		else
 			mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/4_end_trimmed/se/ && 	find ./se -type d -empty -delete
 		fi
+	fi
+
+	if [[ "$rm_transit" == True ]]; then
+		rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
+		rm ${projdir}/3_motif_validated/pe/*fastq* 2> /dev/null
+		rm ${projdir}/3_motif_validated/se/*fastq* 2> /dev/null
 	fi
 
 
@@ -1243,6 +1255,7 @@ main_adapter_remove() {
 			find . -type d -empty -delete
 		fi
 	fi
+	echo "adapter removal complete" > ${projdir}/5_adapter_removal_complete
 
 }
 cd $projdir
@@ -1297,7 +1310,7 @@ if [ "$walkaway" == False ]; then
 fi
 
 
-if [[ "$rm_transit" == True ]]; then
+if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/5_adapter_removal_complete" ]]; then
 	rm ${projdir}/4_end_trimmed/pe/*fastq* 2> /dev/null
 	rm ${projdir}/4_end_trimmed/se/*fastq* 2> /dev/null
 fi
@@ -1336,6 +1349,14 @@ main_quality_filter() {
 		else
 			mv ${projdir}/4_end_trimmed/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ./se -type d -empty -delete
 		fi
+	fi
+
+	if [[ "$rm_transit" == True ]]; then
+		rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
+		rm ${projdir}/3_motif_validated/pe/*fastq* 2> /dev/null
+		rm ${projdir}/3_motif_validated/se/*fastq* 2> /dev/null
+		rm ${projdir}/4_end_trimmed/pe/*fastq* 2> /dev/null
+		rm ${projdir}/4_end_trimmed/se/*fastq* 2> /dev/null
 	fi
 
 
@@ -1502,7 +1523,7 @@ main_quality_filter() {
 			find . -type d -empty -delete
 		fi
 	fi
-
+	echo "quality filtering complete" > ${projdir}/6_quality_filtered_complete
 
 }
 cd $projdir
@@ -1556,7 +1577,7 @@ if [ "$walkaway" == False ]; then
 fi
 
 
-if [[ "$rm_transit" == True ]]; then
+if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/6_quality_filtered_complete" ]]; then
 	rm ${projdir}/5_adapter_removed/pe/*fastq* 2> /dev/null
 	rm ${projdir}/5_adapter_removed/se/*fastq* 2> /dev/null
 fi
@@ -1565,5 +1586,6 @@ fi
 ######################################################################################################################################################
 
 cd ${projdir}
+rm 1_initial_qc_complete 2_demultiplexed_complete 3_adapter_removal_complete 4_end_trimming_complete 5_adapter_removal_complete 6_quality_filtered_complete
 touch Analysis_Complete
 echo -e "${magenta}- Run Complete. ${white}\n"
