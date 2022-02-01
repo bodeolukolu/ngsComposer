@@ -178,8 +178,8 @@ samples_alt_dir=${samples_alt_dir//*=}
 
 if [[ ! -d samples ]]; then
   if [[ -z $samples_alt_dir || $samples_alt_dir =~ False ]]; then
-    echo -e "${magenta}- samples folder is missing and not specified ${white}\n"
-    echo -e "${magenta}- move raw or multiplexed fastq files into a folder named samples in project_directory ${white}\n"
+    echo -e "${magenta}- samples folder is missing ${white}\n"
+    echo -e "${magenta}- move raw or multiplexed fastq files into a folder named ${projdir}/samples ${white}\n"
     echo -e "${magenta}- checking if demultiplexed files already exist in ${projdir}/2_demultiplexed/pe and/or ${projdir}/2_demultiplexed/se ${white}\n"
     if [[ ! "$(ls -A ${projdir}/2_demultiplexed/pe/*f*)" ]]; then
       if [[ ! "$(ls -A ${projdir}/2_demultiplexed/se/*f*)" ]]; then
