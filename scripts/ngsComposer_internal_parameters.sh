@@ -46,12 +46,14 @@ if [ "$cluster" == true ];then
   else
     mkdir ~/bin
     PATH=~/bin:$PATH
+		rm ~/bin/python
     ln -s /usr/bin/python3 ~/bin/python
   fi
 fi
 if [ "$cluster" == false ];then
   mkdir ~/bin
   PATH=~/bin:$PATH
+	rm ~/bin/python
   ln -s /usr/bin/python3 ~/bin/python
   pythonversion=$((python --version) 2>&1)
   if [[ "$pythonversion" =~ "Python 3" ]]; then
