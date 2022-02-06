@@ -252,17 +252,22 @@ main_demultiplex() {
 		if [[ $multithread_demultiplex == False ]]; then
 			awk '{gsub(/_Row/,"\t"); gsub(/_Column/,"\t"); print}' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk '{print $1}' | sort | uniq > ${projdir}/cat_RC.txt
 			if [[ "$test_lib_R2" != False ]]; then
-				python3 $scallop -r1 ${projdir}/samples/"$li" -f $front_trim -o ./
-				python3 $scallop -r1 ${projdir}/samples/"$lj" -f $front_trim -o ./
+				python3 $scallop -r1 ${projdir}/samples/"$li" -f $front_trim -o ./ & PIDR1=$!
+				python3 $scallop -r1 ${projdir}/samples/"$lj" -f $front_trim -o ./ & PIDR2=$!
+				wait $PIDR1
+				wait $PIDR2
 			else
 				python3 $scallop -r1 ${projdir}/samples/"$li" -f $front_trim -o ./
+				wait
 			fi
 			wait
 
 			if [[ "$test_lib_R2" != False ]]; then
-				python3 $anemone -r1 ./trimmed_se.${li%*.fastq.gz}.fastq -r2 ./trimmed_se.${lj%*.fastq.gz}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./
+				python3 $anemone -r1 ./trimmed_se.${li%*.fastq.gz}.fastq -r2 ./trimmed_se.${lj%*.fastq.gz}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./ & PIDR1=$!
+				wait $PIDR1
 			else
-				python3 $anemone -r1 ./trimmed_se.${li%*.fastq.gz}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./
+				python3 $anemone -r1 ./trimmed_se.${li%*.fastq.gz}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./ & PIDR1=$!
+				wait $PIDR1
 			fi
 			wait
 
