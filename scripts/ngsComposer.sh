@@ -257,16 +257,16 @@ main_demultiplex() {
 				wait $PIDR1
 				wait $PIDR2
 			else
-				python3 $scallop -r1 ${projdir}/samples/"$li" -f $front_trim -o ./
-				wait
+				python3 $scallop -r1 ${projdir}/samples/"$li" -f $front_trim -o ./ & PIDR1=$!
+				wait $PIDR1
 			fi
-			wait
+			$gzip trimmed_se* && wait
 
 			if [[ "$test_lib_R2" != False ]]; then
-				python3 $anemone -r1 ./trimmed_se.${li%*.fastq.gz}.fastq -r2 ./trimmed_se.${lj%*.fastq.gz}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./ & PIDR1=$!
+				python3 $anemone -r1 ./trimmed_se.${li} -r2 ./trimmed_se.${lj} -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./ & PIDR1=$!
 				wait $PIDR1
 			else
-				python3 $anemone -r1 ./trimmed_se.${li%*.fastq.gz}.fastq -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./ & PIDR1=$!
+				python3 $anemone -r1 ./trimmed_se.${li} -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./ & PIDR1=$!
 				wait $PIDR1
 			fi
 			wait
