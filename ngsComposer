@@ -175,7 +175,7 @@ fi
 cd $projdir
 samples_alt_dir="$(grep samples_alt_dir config.sh)"
 samples_alt_dir=${samples_alt_dir//*=}
-
+free=$(df . | awk 'NR==2{print $4}')
 
 if [[ ! -d samples ]]; then
   if [[ -z $samples_alt_dir || $samples_alt_dir =~ False ]]; then
@@ -218,7 +218,6 @@ fi
 # Initial questions before running walkaway
 cd $projdir/samples
 
-free=$(df . | awk 'NR==2{print $4}')
 required=$(du -s . | awk '{print $1}') && required0=required
 if [[ "$(ls | head -n1)" =~ "gz" ]]; then required0=$((required*5)); fi
 if [[ -z $samples_alt_dir || $samples_alt_dir =~ False ]]; then
