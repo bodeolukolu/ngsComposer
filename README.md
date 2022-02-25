@@ -282,6 +282,19 @@ GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCTAACCATTCTC
 All tools available in the ngsComposer pipeline can be called individually from the command line. Please see the <a href="https://github.com/bodeolukolu/ngsComposer/blob/master/tools/README.md">ngsComposer Standalone Tools page</a> for usage.
 
 
+## Related Software
+- Next-Generation Sequencing-based Genotyping (NGG)
+    - [GBSapp: automated pipeline for variant calling and filtering.](https://github.com/bodeolukolu/GBSapp)
+
+## Select Article Referencing ngsComposer
+1. ngsComposer: an automated pipeline for empirically based NGS data quality filtering. [Kuster et al. 2021](https://doi.org/10.1093/bib/bbab092)
+
+
+## Acknowledgment
+This package has been developed as part of the [Genomic Tools for Sweetpotato Improvement project](https://sweetpotatogenomics.cals.ncsu.edu/) (GT4SP) and [SweetGAINS](https://cgspace.cgiar.org/handle/10568/106838), both funded by [Bill & Melinda Gates Foundation](https://www.gatesfoundation.org/).
+
+
+
 ## Troubleshooting
 
 ### Python installation
