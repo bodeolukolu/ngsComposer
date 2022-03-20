@@ -3,7 +3,7 @@
 For questions, bugs, and suggestions, please contact bolukolu@utk.edu.
 
 <p align="right">
-<img src="https://github.com/bodeolukolu/ngsComposer/blob/master/misc/logo_ngsComposer.png">
+<img src="https://github.com/bodeolukolu/ngsComposer/blob/master/misc/logo_ngsComposer.png" width="567" height="201">
 </p>
 
 
