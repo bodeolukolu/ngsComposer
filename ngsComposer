@@ -12,20 +12,20 @@ threads=""
 ngsComposer_dir="$( cd -- "$(dirname "$0 ")" >/dev/null 2>&1 ; pwd -P )/"
 
 if [[ "$1" == "" ]]; then
-  echo -e "${white}\n\tUsage:\n\t\t./ngsComposer/ngsComposer\t\t<command>\n\n"
-  echo -e "${white}\n\tpipeline tools can be invoked as standalone tools folder:\n"
-  echo -e "${white}\n\t\tcrinoid.py  - qc stats\n"
-  echo -e "${white}\n\t\tscallop.py  - trimming\n"
-  echo -e "${white}\n\t\tanemone.py  - demultiplexing\n"
-  echo -e "${white}\n\t\trotifer.py  - motif detection\n"
-  echo -e "${white}\n\t\tporifera.py - adapter removal\n"
-  echo -e "${white}\n\t\tkrill.py    - quality filtering\n"
-  echo -e "${white}\tproj_dir\t\tspecify absolute or relative path to project directory\n\n"
+  echo -e "${white}\n\tUsage:\t\t./ngsComposer/ngsComposer\t\t<command>"
+  echo -e "${white}\n\tpipeline tools can be invoked as standalone tools:"
+  echo -e "${white}\t\tcrinoid.py  - qc stats"
+  echo -e "${white}\t\tscallop.py  - trimming"
+  echo -e "${white}\t\tanemone.py  - demultiplexing"
+  echo -e "${white}\t\trotifer.py  - motif detection"
+  echo -e "${white}\t\tporifera.py - adapter removal"
+  echo -e "${white}\t\tkrill.py    - quality filtering\n"
+  echo -e "${white}\tproj_dir\t\tspecify absolute or relative path to project directory\n"
   echo -e "${yellow}\tempirical base-call filtering pipeline for preprocessing fastq libraries\n"
   echo -e "${white}\tCommand:"
   echo -e "${white}\t\t--version, -v\t\tprint software version"
   echo -e "${white}\t\t--help, -h\t\tprint help message"
-  echo -e "${white}\t\tinstall\t\t\tsoftware dependencies"
+  echo -e "${white}\t\tinstall\t\t\tsoftware dependencies\n"
   exit 0
 fi
 if [[ "$1" == "-v" || "$1" == "--version" ]]; then
@@ -37,20 +37,20 @@ if [[ "$1" == "-v" || "$1" == "--version" ]]; then
   exit 0
 fi
 if [[ "$1" == "-h" || "$1" == "--help" ]]; then
-  echo -e "${white}\n\tUsage:\n\t\t./ngsComposer/ngsComposer\t\t<command>\n\n"
-  echo -e "${white}\n\tpipeline tools can be invoked as standalone tools folder:\n"
-  echo -e "${white}\n\t\tcrinoid.py  - qc stats\n"
-  echo -e "${white}\n\t\tscallop.py  - trimming\n"
-  echo -e "${white}\n\t\tanemone.py  - demultiplexing\n"
-  echo -e "${white}\n\t\trotifer.py  - motif detection\n"
-  echo -e "${white}\n\t\tporifera.py - adapter removal\n"
-  echo -e "${white}\n\t\tkrill.py    - quality filtering\n"
-  echo -e "${white}\tproj_dir\t\tspecify absolute or relative path to project directory\n\n"
+  echo -e "${white}\n\tUsage:\t\t./ngsComposer/ngsComposer\t\t<command>"
+  echo -e "${white}\n\tpipeline tools can be invoked as standalone tools:"
+  echo -e "${white}\t\tcrinoid.py  - qc stats"
+  echo -e "${white}\t\tscallop.py  - trimming"
+  echo -e "${white}\t\tanemone.py  - demultiplexing"
+  echo -e "${white}\t\trotifer.py  - motif detection"
+  echo -e "${white}\t\tporifera.py - adapter removal"
+  echo -e "${white}\t\tkrill.py    - quality filtering\n"
+  echo -e "${white}\tproj_dir\t\tspecify absolute or relative path to project directory\n"
   echo -e "${yellow}\tempirical base-call filtering pipeline for preprocessing fastq libraries\n"
   echo -e "${white}\tCommand:"
   echo -e "${white}\t\t--version, -v\t\tprint software version"
   echo -e "${white}\t\t--help, -h\t\tprint help message"
-  echo -e "${white}\t\tinstall\t\t\tsoftware dependencies"
+  echo -e "${white}\t\tinstall\t\t\tsoftware dependencies\n"
   exit 0
 fi
 if [[ "$1" == "install" ]]; then
