@@ -240,7 +240,7 @@ main_demultiplex() {
 		rm temp
 
 
-    # convert matrix to tabler and generate values trim off bases for designing variable length barcode
+    # convert matrix to 3-column dataframe and generate length of trimmed off bases to account for variable length barcode
     awk '{gsub(/X/,"",$1); gsub(/ /,"\t"); print}' holdbc.txt | \
     awk 'NR==1{n=split($0,c);next}{for(i=1;i<=n;i++)s[++t]=$1 FS c[i] FS $(i+1)}END{for(i=1;i<=t;i++){print s[i]}}' | \
     sort -k2,2 | awk '{gsub(/_Row/,"\tRow"); gsub(/_Column/,"\tColumn"); print}' | awk '$4!=""' | sort -n -k3,3 | sort -n -k4,4 | \
@@ -299,6 +299,9 @@ main_demultiplex() {
 				fi
 				rm ${p}_Row*_Column*
 			done < ${projdir}/cat_RC.txt
+			rm NA.R1.fastq.gz &&
+			rm NA.R2.fastq.gz &&
+			wait
 
 			mkdir -p unknown
 			mv unknown*.fastq ./unknown/
@@ -396,6 +399,9 @@ main_demultiplex() {
 	if [[ $multithread_demultiplex == False ]]; then
 		:
 	else
+		rm NA.R1.fastq.gz &&
+		rm NA.R2.fastq.gz &&
+		wait
 		find -type f -wholename "./*chunk*/unknown.R1.fastq.gz" | xargs cat > ./unknown/unknown.R1.fastq.gz & PIDR1=$!
 		wait $PIDR1
 		if [[ "$test_lib_R2" != False ]]; then
