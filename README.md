@@ -10,6 +10,7 @@
 ngsComposer is an automated pipeline for processing and qiality filtering Next-Generation Sequencing (NGS) reads. It
 
 For questions, bugs, and suggestions, please contact bolukolu@utk.edu.
+
 Developers:	Ryan G. Kuster (UTK, TN) and Bode A. Olukolu (UTK, TN)
 
 ## Features
