@@ -32,6 +32,7 @@ if [[ "$1" == "-v" || "$1" == "--version" ]]; then
   echo -e "${white}\n\tProgram:	ngsComposer"
   echo -e "${white}\tVersion:	1.0"
   echo -e "${white}\tDescription:	empirical base-call filtering pipeline for preprocessing fastq libraries"
+  echo -e "${white}\tDevelopers:	Ryan G. Kuster and Bode A. Olukolu\n"
   echo -e "${white}\tContact:	Bode Olukolu <bolukolu@utk.edu>\n"
   echo -e "${white}\tmore info: \thttps://github.com/bodeolukolu/ngscomposer for full usage notes\n"
   exit 0
@@ -135,6 +136,7 @@ echo -e "${yellow}\t- Program:	ngsComposer"
 echo -e "${yellow}\t- Version:	1.0"
 echo -e "${yellow}\t- Description:	empirical base-call filtering pipeline for preprocessing fastq libraries"
 echo -e "${yellow}\t- Contact:	Bode Olukolu <bolukolu@utk.edu> ${white}"
+echo -e "${yellow}\t- Developers:	Ryan G. Kuster and Bode A. Olukolu ${white}"
 echo -e "${yellow}\t- more info:	https://github.com/bodeolukolu/ngscomposer for full usage notes ${white}"
 echo -e "${white}\n##################################################################################\n"
 

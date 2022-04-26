@@ -1,25 +1,26 @@
-# INITIAL DEVELOPMENT RELEASE
 
-For questions, bugs, and suggestions, please contact bolukolu@utk.edu.
 
 <p align="right">
 <img src="https://github.com/bodeolukolu/ngsComposer/blob/master/misc/logo_ngsComposer.png" width="284" height="100">
 </p>
 
 
-# ngsComposer: empirically different
+# Introduction
 
-Base-call error-filtering and read preprocessing pipeline designed by biologists
+ngsComposer is an automated pipeline for processing and qiality filtering Next-Generation Sequencing (NGS) reads. It
+
+For questions, bugs, and suggestions, please contact bolukolu@utk.edu.
+Developers:	Ryan G. Kuster (UTK, TN) and Bode A. Olukolu (UTK, TN)
 
 ## Features
 
-- Full start-to-finish pipeline for many library types
+- Full start-to-finish pipeline for various NGS library types
 - Few dependencies (Python3 and R)
-- Easy to learn
-- Supports variable length barcodes and dual-indexing
+- Easy to learn and designed for biologists
+- Supports variable length barcodes and dual-indexing.
 - Trims buffer sequences and quality filters on a read-by-read basis
 - Accepts project directory of multiple libraries
-- Designed by biologists
+
 
 ## Contents
 - [Installation](#installation)
