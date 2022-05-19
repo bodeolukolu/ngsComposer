@@ -62,7 +62,7 @@ Set up your project directory containing the following:
 - config.sh (see "Configuration" below for detailed instructions on creating this file)
                                      .
 
-<img src="https://github.com/bodeolukolu/ngsComposer/blob/master/misc/ngsComposer_project_dir_setup.png" width="282" height="696">
+<img src="https://github.com/bodeolukolu/ngsComposer/blob/master/misc/ngsComposer_project_dir_setup.png" width="696" height="282">
 
 
 From command line, run ngsComposer as shown below:
