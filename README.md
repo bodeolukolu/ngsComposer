@@ -79,7 +79,7 @@ Several **example datasets** are included in the "examples" directory. Users are
 ### Overview
 The order of steps in the ngsComposer pipeline are outlined in the following figure:
 
-<img src="https://github.com/bodeolukolu/ngsComposer/blob/master/misc/ngsComposer_overview_workflow.png" width="692" height="176">
+<img src="https://github.com/bodeolukolu/ngsComposer/blob/master/misc/ngsComposer_overview_workflow.png" width="866" height="220">
 
 The steps implemented are first specified in a configuration file.
 
