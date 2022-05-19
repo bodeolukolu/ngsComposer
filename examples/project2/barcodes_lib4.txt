@@ -1,0 +1,5 @@
+	A	C	G	T
+A	sample_c	sample_e	sample_f	sample_g
+C	sample_c	sample_e	sample_f	sample_g
+G	sample_c	sample_e	sample_f	sample_g
+T	sample_c	sample_e	sample_f	sample_g

@@ -126,6 +126,8 @@ main_initial_qc() {
 					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
 					wait $PIDR1
 				done
+				for i in ./qc/nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+				for i in ./qc/qscores.*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
 				wait
 			fi
 			if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se/*f* 2> /dev/null)" ]]; then
@@ -135,6 +137,8 @@ main_initial_qc() {
 					python3 $crinoid -r1 $i -t ${threads} -o ./qc & PIDR1=$!
 					wait $PIDR1
 				done
+				for i in ./qc/nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+				for i in ./qc/qscores.*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
 				wait
 			fi
 		fi
@@ -151,6 +155,8 @@ main_initial_qc() {
 			fi
 			wait $PIDR1
 			wait $PIDR2
+			for i in ./1_initial_qc/nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+			for i in ./1_initial_qc/qscores.*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
 		done
 	fi
 	echo "intial QC complete" > ${projdir}/1_initial_qc_complete
@@ -188,6 +194,7 @@ main_demultiplex() {
   list_lib=$(grep '^lib' config.sh | grep '_R1=' | awk '{gsub(/=/,"\t"); print $2}')
 
   for li in $list_lib; do
+		cd ${projdir}
     bc_matrix=$(grep -h "$li" config.sh | awk '{gsub(/_R1/,"\t"); print $1"_bc"}')
     bc_matrix=$(grep -h "$bc_matrix" config.sh | awk '{gsub(/=/,"\t"); print $2}')
     if [[ "$test_lib_R2" != False ]]; then
@@ -299,13 +306,17 @@ main_demultiplex() {
 				fi
 				rm ${p}_Row*_Column*
 			done < ${projdir}/cat_RC.txt
-			rm NA.R1.fastq.gz &&
-			rm NA.R2.fastq.gz &&
+			rm NA.R1.fastq.gz 2> /dev/null &&
+			rm NA.R2.fastq.gz 2> /dev/null &&
+			rm na.R1.fastq.gz 2> /dev/null &&
+			rm na.R2.fastq.gz 2> /dev/null &&
 			wait
 
 			mkdir -p unknown
-			mv unknown*.fastq ./unknown/
-			cd unknown && $gzip * && cd ../
+			if test -f unknown*.fastq; then
+				for i in unknown*.fastq; do $gzip $i 2> /dev/null; done
+				for i in unknown*.fastq.gz; do cat ${i} >> ./unknown/${i}; rm ${i} 2> /dev/null; done
+			fi
 			wait
 			if [[ "$test_lib_R2" != False ]]; then
 				mv *.fastq.gz ./pe/
@@ -350,8 +361,10 @@ main_demultiplex() {
 				rm trimmed_se*
 				wait
 				mkdir -p unknown
-				mv unknown*.fastq ./unknown/
-				cd unknown && $gzip * && cd ../
+				if test -f unknown*.fastq; then
+					for i in unknown*.fastq; do $gzip $i 2> /dev/null; done
+					for i in unknown*.fastq.gz; do cat ${i} >> ./unknown/${i}; rm ${i} 2> /dev/null; done
+				fi
 				wait
 				for sid in $(ls *.R1.fastq | grep -v unknown); do
 					fringelen=$( awk -F'\t' -v sampid=${sid%.R1.fastq} '$1 == sampid' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk -F'\t' '{print $2}' )
@@ -396,11 +409,15 @@ main_demultiplex() {
 
   done
   wait
+
+
 	if [[ $multithread_demultiplex == False ]]; then
 		:
 	else
-		rm NA.R1.fastq.gz &&
-		rm NA.R2.fastq.gz &&
+		rm NA.R1.fastq.gz 2> /dev/null &&
+		rm NA.R2.fastq.gz 2> /dev/null &&
+		rm na.R1.fastq.gz 2> /dev/null &&
+		rm na.R2.fastq.gz 2> /dev/null &&
 		wait
 		find -type f -wholename "./*chunk*/unknown.R1.fastq.gz" | xargs cat > ./unknown/unknown.R1.fastq.gz & PIDR1=$!
 		wait $PIDR1
@@ -431,8 +448,8 @@ main_demultiplex() {
 	find . -type d -empty -delete
 	find ./pe -size 0 -delete 2> /dev/null
 	find ./se -size 0 -delete 2> /dev/null
-	if [[ -d pe ]]; then for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done; fi
-	if [[ -d se ]]; then for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done; fi
+	if [[ -d pe ]] && [[ "$(ls -A ./pe 2> /dev/null)" ]]; then for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done; fi
+	if [[ -d se ]] && [[ "$(ls -A ./se 2> /dev/null)" ]]; then for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done; fi
 
 	if [[ "${QC_demultiplexed}" =~ summary || "${QC_demultiplexed}" =~ full ]]; then
 		cd unknown
@@ -443,6 +460,9 @@ main_demultiplex() {
 			python3 $crinoid -r1 ./unknown.R2.fastq.gz -t "${threads}" -o ./qc & PIDR1=$!
 			wait $PIDR1
 		fi
+		for i in ./qc/nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+		for i in ./qc/qscores.*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+		wait
 
 		if [[ "$test_lib_R2" != False ]]; then
 			cd ../pe
@@ -492,6 +512,9 @@ main_demultiplex() {
 				wait $PIDR1
 			fi
 		fi
+		for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+		for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+		wait
 
 		mkdir full summary
 		mv *fastq* ./full/
@@ -548,8 +571,6 @@ if [ "$walkaway" == True ]; then
 		echo -e "${magenta}- skipping demultiplexing ${white}\n"
 	fi
 fi
-
-
 if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- Demultiplexing was performed with a mismatch="$mismatch" ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
@@ -586,7 +607,7 @@ main_motif_validation() {
   motifR1=$( echo $R1_motif | awk '{gsub(/,/," "); print}')
   motifR2=$( echo $R2_motif | awk '{gsub(/,/," "); print}')
 
-	if [[ -d "${projdir}/2_demultiplexed/pe" ]]; then
+	if [[ -d "${projdir}/2_demultiplexed/pe" ]] && [[ ! -z "$motifR1" ]] && [[ ! -z "$motifR2" ]]; then
 		for mot in ${projdir}/2_demultiplexed/pe/*.R1.fastq.gz; do (
 		    python3 $rotifer -r1 ${mot} -r2 ${mot%.R1.fastq.gz}.R2.fastq.gz -m1 $motifR1 -m2 $motifR2 -o ./pe &&
 				motgz=${mot#*/pe/}; motgz=${motgz%.gz} &&
@@ -600,7 +621,38 @@ main_motif_validation() {
 		done
 		wait
 	fi
-	if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se)" ]]; then
+
+	if [[ -d "${projdir}/2_demultiplexed/pe" ]] && [[ ! -z "$motifR1" ]] && [[ -z "$motifR2" ]]; then
+		for mot in ${projdir}/2_demultiplexed/pe/*.R1.fastq.gz; do (
+				python3 $rotifer -r1 ${mot} -r2 ${mot%.R1.fastq.gz}.R2.fastq.gz -m1 $motifR1 -o ./pe &&
+				motgz=${mot#*/pe/}; motgz=${motgz%.gz} &&
+				cd pe &&
+				$gzip ./*${motgz} && $gzip ./*${motgz%.R1.fastq}.R2.fastq &&
+				cd ../ &&
+				wait ) &
+				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+					wait
+				fi
+		done
+		wait
+	fi
+
+	if [[ -d "${projdir}/2_demultiplexed/pe" ]] && [[ -z "$motifR1" ]] && [[ ! -z "$motifR2" ]]; then
+		for mot in ${projdir}/2_demultiplexed/pe/*.R1.fastq.gz; do (
+				python3 $rotifer -r1 ${mot} -r2 ${mot%.R1.fastq.gz}.R2.fastq.gz -m2 $motifR2 -o ./pe &&
+				motgz=${mot#*/pe/}; motgz=${motgz%.gz} &&
+				cd pe &&
+				$gzip ./*${motgz} && $gzip ./*${motgz%.R1.fastq}.R2.fastq &&
+				cd ../ &&
+				wait ) &
+				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+					wait
+				fi
+		done
+		wait
+	fi
+
+	if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se 2> /dev/null)" ]]; then
 		for mot in ${projdir}/2_demultiplexed/se/*.R1.fastq.gz; do (
 				python3 $rotifer -r1 ${mot} -m1 $motifR1 -o ./se &&
 				motgz=${mot#*/se/}; motgz=${motgz%.gz} &&
@@ -617,19 +669,19 @@ main_motif_validation() {
 	find ./pe -size 0 -delete 2> /dev/null &&
 	find ./se -size 0 -delete 2> /dev/null &&
 	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
-	if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se)" ]]; then
-		for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se 2> /dev/null)" ]]; then
+		for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done &&
 		wait
 	else
-		touch ./se/se.
+		:
 	fi
 
 
 	mv se pre_se
 	mkdir -p se
 	mot_se=$( ls ./pe/se* | cat - <(ls ./pre_se/se*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
-	rm ./pre_se/se.
-	if [[ ! "$(ls -A ./pre_se/)" ]]; then
+	rm ./pre_se/se
+	if [[ ! "$(ls -A ./pre_se/ 2> /dev/null)" ]]; then
 		rmdir pre_se
 	fi
 	for i in $mot_se; do
@@ -641,14 +693,16 @@ main_motif_validation() {
 	wait
 	rm -rf pre_se
 	cd ./pe
-	for i in pe.*; do mv $i ${i#pe.}; done
+	if test -f pe.*; then
+		for i in pe.*; do mv $i ${i#pe.}; done
+	fi
 	cd ../
 	find . -type d -empty -delete
 	find ./pe -size 0 -delete 2> /dev/null &&
 	find ./se -size 0 -delete 2> /dev/null &&
 	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
-	if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se)" ]]; then
-		for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se 2> /dev/null)" ]]; then
+		for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done &&
 		wait
 	fi
 	wait
@@ -659,7 +713,7 @@ main_motif_validation() {
 			mkdir -p qc
 			for f in *.R1.fastq.gz; do (
 				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc ) &
+				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
 				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 					wait
 				fi
@@ -691,6 +745,10 @@ main_motif_validation() {
 					wait $PIDR1
 				fi
 			fi
+			for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+			for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+			wait
+
 			mkdir full summary
 			mv *fastq* ./full/
 			mv *_summary* ./summary/
@@ -703,7 +761,7 @@ main_motif_validation() {
 			if [[ "$test_lib_R2" != False ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc ) &
+					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
 					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 						wait
 					fi
@@ -745,6 +803,10 @@ main_motif_validation() {
 					wait $PIDR1
 				fi
 			fi
+			for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+			for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+			wait
+
 			mkdir full summary
 			mv *fastq* ./full/
 			mv *_summary* ./summary/
@@ -755,64 +817,66 @@ main_motif_validation() {
 
 }
 cd $projdir
-if [ "$walkaway" == False ]; then
-	echo -e "${magenta}- Do you want to perform known motif validation? ${white}\n"
-	read -p "- y(YES) or n(NO) " -t 36000 -n 1 -r
-	if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-		printf '\n'
-		echo -e "${magenta}- skipping known motif validation ${white}\n"
-	else
-		printf '\n'
-		echo -e "${magenta}- performing known motif validation ${white}\n"
-		time main_motif_validation &>> log.out
-	fi
-fi
-if [ "$walkaway" == True ]; then
-	if [ "$motif_validation" == 1 ]; then
-		echo -e "${magenta}- performing known motif validation ${white}\n"
-		time main_motif_validation &>> log.out
-	else
-		echo -e "${magenta}- skipping known motif validation ${white}\n"
-	fi
-fi
-
-if [ "$walkaway" == False ]; then
-	echo -e "${magenta}- motif validation was performed with R1_motif("$R1_motif") and R2_motif("$R2_motif") ${white}"
-	echo -e "${magenta}- Check output and QC plot(s) ${white}"
-	echo -e "${magenta}- Do you want to accept R1_motif validation? ${white}"
-	read -p "- y(YES) or <enter_new_motif>? " -n 1 -r
-	if [[ $REPLY =~ ^[Yy]$ ]]; then
-		echo -e "${magenta}- R1_motif=$R1_motif_new ${white}"
-		R1_motif_new=""; printf "\n"
-	else
-		R1_motif_new=$REPLY; printf "\n"
-	fi
-	echo -e "${magenta}- Do you want to accept R2_motif validation? ${white}"
-	read -p "- y(YES) or <enter_new_motif>? " -n 1 -r
-	if [[ $REPLY =~ ^[Yy]$ ]]; then
-		echo -e "${magenta}- R2_motif=$R2_motif_new ${white}"
-		R2_motif_new=""; printf "\n"
-	else
-		R2_motif_new=$REPLY; printf "\n"
-	fi
-	if [[ -z "$R1_motif_new" && -z "$R2_motif_new" ]]; then
-		echo -e "${magenta}- ngsComposer will replace output from motif_validation with demultiplexing output, i.e. skipping motif_validation ${white}"
-		rm -rf ${projdir}/3_motif_validated/pe 2> /dev/null
-		rm -rf ${projdir}/3_motif_validated/se 2> /dev/null
-		mv ${projdir}/2_demultiplexed/pe ${projdir}/3_motif_validated/
-	else
-		if [[ "$R1_motif" == "$R1_motif_new" && "$R2_motif" == "$R2_motif_new" ]]; then
-			echo -e "${magenta}- ngsComposer will proceed to the next analytical step ${white}"
+if [[-z "$motifR1" ]] && [[-z "$motifR2" ]]; then
+	if [ "$walkaway" == False ]; then
+		echo -e "${magenta}- Do you want to perform known motif validation? ${white}\n"
+		read -p "- y(YES) or n(NO) " -t 36000 -n 1 -r
+		if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+			printf '\n'
+			echo -e "${magenta}- skipping known motif validation ${white}\n"
 		else
-			R1_motif=$R1_motif_new
-			R2_motif=$R2_motif_new
+			printf '\n'
+			echo -e "${magenta}- performing known motif validation ${white}\n"
 			time main_motif_validation &>> log.out
 		fi
 	fi
-fi
+	if [ "$walkaway" == True ]; then
+		if [ "$motif_validation" == 1 ]; then
+			echo -e "${magenta}- performing known motif validation ${white}\n"
+			time main_motif_validation &>> log.out
+		else
+			echo -e "${magenta}- skipping known motif validation ${white}\n"
+		fi
+	fi
 
-if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/3_motif_validation_complete" ]]; then
-	rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
+	if [ "$walkaway" == False ]; then
+		echo -e "${magenta}- motif validation was performed with R1_motif("$R1_motif") and R2_motif("$R2_motif") ${white}"
+		echo -e "${magenta}- Check output and QC plot(s) ${white}"
+		echo -e "${magenta}- Do you want to accept R1_motif validation? ${white}"
+		read -p "- y(YES) or <enter_new_motif>? " -n 1 -r
+		if [[ $REPLY =~ ^[Yy]$ ]]; then
+			echo -e "${magenta}- R1_motif=$R1_motif_new ${white}"
+			R1_motif_new=""; printf "\n"
+		else
+			R1_motif_new=$REPLY; printf "\n"
+		fi
+		echo -e "${magenta}- Do you want to accept R2_motif validation? ${white}"
+		read -p "- y(YES) or <enter_new_motif>? " -n 1 -r
+		if [[ $REPLY =~ ^[Yy]$ ]]; then
+			echo -e "${magenta}- R2_motif=$R2_motif_new ${white}"
+			R2_motif_new=""; printf "\n"
+		else
+			R2_motif_new=$REPLY; printf "\n"
+		fi
+		if [[ -z "$R1_motif_new" && -z "$R2_motif_new" ]]; then
+			echo -e "${magenta}- ngsComposer will replace output from motif_validation with demultiplexing output, i.e. skipping motif_validation ${white}"
+			rm -rf ${projdir}/3_motif_validated/pe 2> /dev/null
+			rm -rf ${projdir}/3_motif_validated/se 2> /dev/null
+			mv ${projdir}/2_demultiplexed/pe ${projdir}/3_motif_validated/
+		else
+			if [[ "$R1_motif" == "$R1_motif_new" && "$R2_motif" == "$R2_motif_new" ]]; then
+				echo -e "${magenta}- ngsComposer will proceed to the next analytical step ${white}"
+			else
+				R1_motif=$R1_motif_new
+				R2_motif=$R2_motif_new
+				time main_motif_validation &>> log.out
+			fi
+		fi
+	fi
+
+	if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/3_motif_validation_complete" ]]; then
+		rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
+	fi
 fi
 
 
@@ -827,12 +891,13 @@ main_end_trim() {
 	mkdir -p pe se
 
 	if [[ ! -d ${projdir}/3_motif_validated ]]; then mkdir -p ${projdir}/3_motif_validated/pe; mkdir -p ${projdir}/3_motif_validated/se; fi
-	if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe)" ]]; then mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/3_motif_validated/pe/ && 	find ${projdir}/3_motif_validated/pe/ -type d -empty -delete; fi
-	if [[ -z "$(ls -A ${projdir}/3_motif_validated/se)" ]]; then mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/3_motif_validated/se/ && 	find ${projdir}/3_motif_validated/se/ -type d -empty -delete; fi
+	if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe 2> /dev/null)" ]]; then mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/3_motif_validated/pe/ 2> /dev/null && 	find ${projdir}/3_motif_validated/pe/ -type d -empty -delete; fi
+	if [[ -z "$(ls -A ${projdir}/3_motif_validated/se 2> /dev/null)" ]]; then mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/3_motif_validated/se/ 2> /dev/null && 	find ${projdir}/3_motif_validated/se/ -type d -empty -delete; fi
 	if [[ "$rm_transit" == True ]]; then
 		rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
 		rm ${projdir}/2_demultiplexed/se/*fastq* 2> /dev/null
 	fi
+	find ${projdir}/3_motif_validated -type d -empty -delete
 
 	if [[ -d "${projdir}/3_motif_validated/pe" ]]; then
 		for etm in ${projdir}/3_motif_validated/pe/*.R1.fastq.gz; do (
@@ -872,13 +937,13 @@ main_end_trim() {
 
 	find ./pe -size 0 -delete 2> /dev/null &&
 	find ./se -size 0 -delete 2> /dev/null &&
-	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	if [[ -d pe ]] && [[ "$(ls -A ./pe 2> /dev/null)" ]]; then for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done && wait; fi
+	if [[ -d se ]] && [[ "$(ls -A ./se 2> /dev/null)" ]]; then for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done && wait; fi
 
 
 	mv se pre_se
 	mkdir -p se
-	etm_se=$( ls ./pe/trimmed_se* | cat - <(ls ./pre_se/trimmed_se*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/trimmed_se./,"");}1' | sort | uniq)
+	etm_se=$( ls ./pe/trimmed_se* 2> /dev/null | cat - <(ls ./pre_se/trimmed_se* 2> /dev/null) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/trimmed_se./,"");}1' | sort | uniq)
 	for i in $etm_se; do
 		if [[ -f ./pe/trimmed_se.${i} && -f ./pre_se/trimmed_se.${i} ]]; then cat ./pe/trimmed_se.${i} ./pre_se/trimmed_se.${i} > ./se/$i; fi &&
 		if [[ -f ./pe/trimmed_se.${i} && ! -f ./pre_se/trimmed_se.${i} ]]; then mv ./pe/trimmed_se.${i} ./se/$i; fi &&
@@ -886,16 +951,18 @@ main_end_trim() {
 		wait
 	done
 	wait
-	rm -rf pre_se
-	rm ./pe/trimmed_se*
+	rm -rf pre_se 2> /dev/null
+	rm ./pe/trimmed_se* 2> /dev/null
 	cd ./pe
-	for i in trimmed_pe.*; do mv $i ${i#trimmed_pe.}; done
+	if test -f trimmed_pe.*; then
+		for i in trimmed_pe.*; do mv $i ${i#trimmed_pe.}; done
+	fi
 	cd ../
 	find . -type d -empty -delete
 	find ./pe -size 0 -delete 2> /dev/null &&
 	find ./se -size 0 -delete 2> /dev/null &&
-	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	if [[ -d pe ]] && [[ "$(ls -A ./pe 2> /dev/null)" ]]; then for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done && wait; fi
+	if [[ -d se ]] && [[ "$(ls -A ./se 2> /dev/null)" ]]; then for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done && wait; fi
 
 
 	if [[ "${QC_end_trimmed}" =~ summary || "${QC_end_trimmed}" =~ full ]]; then
@@ -904,7 +971,7 @@ main_end_trim() {
 			mkdir -p qc
 			for f in *.R1.fastq.gz; do (
 				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc ) &
+				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
 				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 					wait
 				fi
@@ -936,6 +1003,10 @@ main_end_trim() {
 					wait $PIDR1
 				fi
 			fi
+			for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+			for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+			wait
+
 			mkdir full summary
 			mv *fastq* ./full/
 			mv *_summary* ./summary/
@@ -948,7 +1019,7 @@ main_end_trim() {
 			if [[ "$test_lib_R2" != False ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc ) &
+					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
 					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 						wait
 					fi
@@ -990,6 +1061,10 @@ main_end_trim() {
 					wait $PIDR1
 				fi
 			fi
+			for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+			for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+			wait
+
 			mkdir full summary
 			mv *fastq* ./full/
 			mv *_summary* ./summary/
@@ -1020,8 +1095,6 @@ if [ "$walkaway" == True ]; then
 		echo -e "${magenta}- skipping end-trimming of reads ${white}\n"
 	fi
 fi
-
-
 if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- end trimming was performed with end_score="$end_score", window="$window", and min_len="$min_len" ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
@@ -1058,8 +1131,6 @@ if [ "$walkaway" == False ]; then
 		time main_end_trim &>> log.out
 	fi
 fi
-
-
 if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/4_end_trimming_complete" ]]; then
 	rm ${projdir}/3_motif_validated/pe/*fastq* 2> /dev/null
 	rm ${projdir}/3_motif_validated/se/*fastq* 2> /dev/null
@@ -1081,18 +1152,18 @@ main_adapter_remove() {
 	mkdir -p pe se
 
 	if [[ ! -d ${projdir}/4_end_trimmed/pe ]]; then mkdir -p ${projdir}/4_end_trimmed/pe; mkdir -p ${projdir}/4_end_trimmed/se; fi
-	if [[ -z "$(ls -A ${projdir}/4_end_trimmed/pe)" ]]; then
-		if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe)" ]] ; then
-			mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/4_end_trimmed/pe/ && 	find ${projdir}/4_end_trimmed/pe -type d -empty -delete
+	if [[ -z "$(ls -A ${projdir}/4_end_trimmed/pe 2> /dev/null)" ]]; then
+		if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe 2> /dev/null)" ]] ; then
+			mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/4_end_trimmed/pe/ 2> /dev/null && 	find ${projdir}/4_end_trimmed/pe -type d -empty -delete
 		else
-			mv ${projdir}/3_motif_validated/pe/*fastq* ${projdir}/4_end_trimmed/pe/ && 	find ${projdir}/4_end_trimmed/pe -type d -empty -delete
+			mv ${projdir}/3_motif_validated/pe/*fastq* ${projdir}/4_end_trimmed/pe/ 2> /dev/null && 	find ${projdir}/4_end_trimmed/pe -type d -empty -delete
 		fi
 	fi
-	if [[ -z "$(ls -A ${projdir}/4_end_trimmed/se)" ]]; then
-		if [[ -z "$(ls -A ${projdir}/3_motif_validated/se)" ]] ; then
-			mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/4_end_trimmed/se/ && 	find ${projdir}/4_end_trimmed/se -type d -empty -delete
+	if [[ -z "$(ls -A ${projdir}/4_end_trimmed/se 2> /dev/null)" ]]; then
+		if [[ -z "$(ls -A ${projdir}/3_motif_validated/se 2> /dev/null)" ]] ; then
+			mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/4_end_trimmed/se/ 2> /dev/null && 	find ${projdir}/4_end_trimmed/se -type d -empty -delete
 		else
-			mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/4_end_trimmed/se/ && 	find ${projdir}/4_end_trimmed/se -type d -empty -delete
+			mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/4_end_trimmed/se/ 2> /dev/null && 	find ${projdir}/4_end_trimmed/se -type d -empty -delete
 		fi
 	fi
 
@@ -1102,6 +1173,7 @@ main_adapter_remove() {
 		rm ${projdir}/3_motif_validated/pe/*fastq* 2> /dev/null
 		rm ${projdir}/3_motif_validated/se/*fastq* 2> /dev/null
 	fi
+	find ${projdir}/4_end_trimmed -type d -empty -delete
 
 
 	if [[ -d "${projdir}/4_end_trimmed/pe" ]]; then
@@ -1141,31 +1213,36 @@ main_adapter_remove() {
 
 	find ./pe -size 0 -delete 2> /dev/null &&
 	find ./se -size 0 -delete 2> /dev/null &&
-	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	if [[ -d pe ]] && [[ "$(ls -A ./pe 2> /dev/null)" ]]; then for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done && wait; fi
+	if [[ -d se ]] && [[ "$(ls -A ./se 2> /dev/null)" ]]; then for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done && wait; fi
 
 
-	mv se pre_se
-	mkdir -p se
-	adp_se=$( ls ./pe/se.adapted* | cat - <(ls ./pre_se/adapted*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se.adapted./,"");}1' | awk '{gsub(/adapted./,"");}1' | sort | uniq)
-	for i in $adp_se; do
-		if [[ -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then cat ./pe/se.adapted.${i} ./pre_se/adapted.${i} > ./se/$i; fi &&
-		if [[ -f ./pe/se.adapted.${i} && ! -f ./pre_se/adapted.${i} ]]; then mv ./pe/se.adapted.${i} ./se/$i; fi &&
-		if [[ ! -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then mv ./pre_se/adapted.${i} ./se/$i; fi &&
-		wait
-	done
-	rm -rf pre_se
-	rm ./pe/se.adapted*
+	if [[ -d "${projdir}/4_end_trimmed/se" ]]; then
+		mv se pre_se
+		mkdir -p se
+		adp_se=$( ls ./pe/se.adapted* 2> /dev/null | cat - <(ls ./pre_se/adapted*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se.adapted./,"");}1' | awk '{gsub(/adapted./,"");}1' | sort | uniq)
+		for i in $adp_se; do
+			if [[ -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then cat ./pe/se.adapted.${i} ./pre_se/adapted.${i} > ./se/$i; fi &&
+			if [[ -f ./pe/se.adapted.${i} && ! -f ./pre_se/adapted.${i} ]]; then mv ./pe/se.adapted.${i} ./se/$i; fi &&
+			if [[ ! -f ./pe/se.adapted.${i} && -f ./pre_se/adapted.${i} ]]; then mv ./pre_se/adapted.${i} ./se/$i; fi &&
+			wait
+		done
+	fi
+
+	rm -rf pre_se 2> /dev/null
+	rm ./pe/se.adapted*  2> /dev/null
 	cd ./pe
-	for i in pe.adapted.*; do mv $i ${i#pe.adapted.}; done
+	if test -f pe.adapted.*; then
+		for i in pe.adapted.*; do mv $i ${i#pe.adapted.}; done
+	fi
 	cd ../se
-	for i in se.adapted.*; do mv $i ${i#se.adapted.}; done
+	if [[ -d "${projdir}/4_end_trimmed/se" ]]; then for i in se.adapted.*; do mv $i ${i#se.adapted.} 2> /dev/null; done; fi
 	cd ../
 	find . -type d -empty -delete
 	find ./pe -size 0 -delete 2> /dev/null &&
 	find ./se -size 0 -delete 2> /dev/null &&
-	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	if [[ -d pe ]] && [[ "$(ls -A ./pe 2> /dev/null)" ]]; then for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done && wait; fi
+	if [[ -d se ]] && [[ "$(ls -A ./se 2> /dev/null)" ]]; then for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done && wait; fi
 
 
 	if [[ "${QC_adapter_removed}" =~ summary || "${QC_adapter_removed}" =~ full ]]; then
@@ -1174,7 +1251,7 @@ main_adapter_remove() {
 			mkdir -p qc
 			for f in *.R1.fastq.gz; do (
 				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc ) &
+				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
 				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 					wait
 				fi
@@ -1206,6 +1283,10 @@ main_adapter_remove() {
 					wait $PIDR1
 				fi
 			fi
+			for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+			for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+			wait
+
 			mkdir full summary
 			mv *fastq* ./full/
 			mv *_summary* ./summary/
@@ -1218,7 +1299,7 @@ main_adapter_remove() {
 			if [[ "$test_lib_R2" != False ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc ) &
+					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
 					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 						wait
 					fi
@@ -1260,6 +1341,10 @@ main_adapter_remove() {
 					wait $PIDR1
 				fi
 			fi
+			for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+			for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+			wait
+
 			mkdir full summary
 			mv *fastq* ./full/
 			mv *_summary* ./summary/
@@ -1290,8 +1375,6 @@ if [ "$walkaway" == True ]; then
 		echo -e "${magenta}- skipping adapter removal ${white}\n"
 	fi
 fi
-
-
 if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- adapter removal was performed with adapter_match="$adapter_match" min_len="$min_len" ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
@@ -1319,8 +1402,6 @@ if [ "$walkaway" == False ]; then
 		time main_adapter_remove &>> log.out
 	fi
 fi
-
-
 if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/5_adapter_removal_complete" ]]; then
 	rm ${projdir}/4_end_trimmed/pe/*fastq* 2> /dev/null
 	rm ${projdir}/4_end_trimmed/se/*fastq* 2> /dev/null
@@ -1339,26 +1420,26 @@ main_quality_filter() {
 	mkdir -p pe se
 
 	if [[ ! -d ${projdir}/5_adapter_removed/pe ]]; then mkdir -p ${projdir}/5_adapter_removed/pe; mkdir -p ${projdir}/5_adapter_removed/se; fi
-	if [[ -z "$(ls -A ${projdir}/5_adapter_removed/pe)" ]]; then
-		if [[ -z "$(ls -A ${projdir}/4_end_trimmed/pe)" ]] ; then
-			if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe)" ]] ; then
-				mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ${projdir}/5_adapter_removed/pe -type d -empty -delete
+	if [[ -z "$(ls -A ${projdir}/5_adapter_removed/pe 2> /dev/null)" ]]; then
+		if [[ -z "$(ls -A ${projdir}/4_end_trimmed/pe 2> /dev/null)" ]] ; then
+			if [[ -z "$(ls -A ${projdir}/3_motif_validated/pe 2> /dev/null)" ]] ; then
+				mv ${projdir}/2_demultiplexed/pe/*fastq* ${projdir}/5_adapter_removed/pe/ 2> /dev/null && 	find ${projdir}/5_adapter_removed/pe -type d -empty -delete
 			else
-				mv ${projdir}/3_motif_validated/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ${projdir}/5_adapter_removed/pe -type d -empty -delete
+				mv ${projdir}/3_motif_validated/pe/*fastq* ${projdir}/5_adapter_removed/pe/ 2> /dev/null && 	find ${projdir}/5_adapter_removed/pe -type d -empty -delete
 			fi
 		else
-			mv ${projdir}/4_end_trimmed/pe/*fastq* ${projdir}/5_adapter_removed/pe/ && 	find ${projdir}/5_adapter_removed/pe -type d -empty -delete
+			mv ${projdir}/4_end_trimmed/pe/*fastq* ${projdir}/5_adapter_removed/pe/ 2> /dev/null && 	find ${projdir}/5_adapter_removed/pe -type d -empty -delete
 		fi
 	fi
-	if [[ -z "$(ls -A ${projdir}/5_adapter_removed/se)" ]]; then
-		if [[ -z "$(ls -A ${projdir}/4_end_trimmed/se)" ]] ; then
-			if [[ -z "$(ls -A ${projdir}/3_motif_validated/se)" ]] ; then
-				mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ${projdir}/5_adapter_removed/se -type d -empty -delete
+	if [[ -z "$(ls -A ${projdir}/5_adapter_removed/se 2> /dev/null)" ]]; then
+		if [[ -z "$(ls -A ${projdir}/4_end_trimmed/se 2> /dev/null)" ]] ; then
+			if [[ -z "$(ls -A ${projdir}/3_motif_validated/se 2> /dev/null)" ]] ; then
+				mv ${projdir}/2_demultiplexed/se/*fastq* ${projdir}/5_adapter_removed/se/ 2> /dev/null && 	find ${projdir}/5_adapter_removed/se -type d -empty -delete
 			else
-				mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ${projdir}/5_adapter_removed/se -type d -empty -delete
+				mv ${projdir}/3_motif_validated/se/*fastq* ${projdir}/5_adapter_removed/se/ 2> /dev/null && 	find ${projdir}/5_adapter_removed/se -type d -empty -delete
 			fi
 		else
-			mv ${projdir}/4_end_trimmed/se/*fastq* ${projdir}/5_adapter_removed/se/ && 	find ${projdir}/5_adapter_removed/se -type d -empty -delete
+			mv ${projdir}/4_end_trimmed/se/*fastq* ${projdir}/5_adapter_removed/se/ 2> /dev/null && 	find ${projdir}/5_adapter_removed/se -type d -empty -delete
 		fi
 	fi
 
@@ -1370,7 +1451,7 @@ main_quality_filter() {
 		rm ${projdir}/4_end_trimmed/pe/*fastq* 2> /dev/null
 		rm ${projdir}/4_end_trimmed/se/*fastq* 2> /dev/null
 	fi
-
+	find ${projdir}/5_adapter_removed -type d -empty -delete
 
 	if [[ -d "${projdir}/5_adapter_removed/pe" ]]; then
 		for fin in ${projdir}/5_adapter_removed/pe/*.R1.fastq.gz; do (
@@ -1412,13 +1493,13 @@ main_quality_filter() {
 
 	find ./pe -size 0 -delete 2> /dev/null &&
 	find ./se -size 0 -delete 2> /dev/null &&
-	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	if [[ -d pe ]] && [[ "$(ls -A ./pe 2> /dev/null)" ]]; then for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done && wait; fi
+	if [[ -d se ]] && [[ "$(ls -A ./se 2> /dev/null)" ]]; then for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done && wait; fi
 
 
 	mv se pre_se
 	mkdir -p se
-	fin_se=$( ls ./pe/se.* | cat - <(ls ./pre_se/se.*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
+	fin_se=$( ls ./pe/se.* 2> /dev/null | cat - <(ls ./pre_se/se.* 2> /dev/null ) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
 	for i in $fin_se; do
 		if [[ -f ./pe/se.${i} && -f ./pre_se/se.${i} ]]; then cat ./pe/se.${i} ./pre_se/se.${i} > ./se/$i; rm ./pe/se.${i}; fi &&
 		if [[ -f ./pe/se.${i} && ! -f ./pre_se/se.${i} ]]; then mv ./pe/se.${i} ./se/$i; fi &&
@@ -1428,13 +1509,15 @@ main_quality_filter() {
 
 	rm -rf pre_se
 	cd ./pe
-	for i in pe.*; do mv $i ${i#pe.}; done
+	if test -f pe.*; then
+		for i in pe.*; do mv $i ${i#pe.}; done
+	fi
 	cd ../
 	find . -type d -empty -delete
 	find ./pe -size 0 -delete 2> /dev/null &&
 	find ./se -size 0 -delete 2> /dev/null &&
-	for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
-	for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i; fi; done &&
+	if [[ -d pe ]] && [[ "$(ls -A ./pe 2> /dev/null)" ]]; then for i in ./pe/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done && wait; fi
+	if [[ -d se ]] && [[ "$(ls -A ./se 2> /dev/null)" ]]; then for i in ./se/*gz; do if [[ $(zcat $i | head -n 10 | wc -l ) -le 4 ]]; then  rm $i 2> /dev/null; fi; done && wait; fi
 
 
 	if [[ "${QC_final}" =~ summary || "${QC_final}" =~ full ]]; then
@@ -1443,7 +1526,7 @@ main_quality_filter() {
 			mkdir -p qc
 			for f in *.R1.fastq.gz; do (
 				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc ) &
+				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
 				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 					wait
 				fi
@@ -1468,13 +1551,17 @@ main_quality_filter() {
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_final_R2_summary.csv &&
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_final_R2_summary.csv 2> /dev/null &&
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_final_R2_summary.csv &&
-					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R2_summary.csv nucleotides_final_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_final_R2_summary.csv 2> /dev/null &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R2_summary.csv nucleotides_final_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages 2> /dev/null & PIDR1=$!
 					wait $PIDR1
 				fi
 			fi
+			for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+			for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+			wait
+
 			mkdir full summary
 			mv *fastq* ./full/
 			mv *_summary* ./summary/
@@ -1487,7 +1574,7 @@ main_quality_filter() {
 			if [[ "$test_lib_R2" != False ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc ) &
+					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
 					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
 						wait
 					fi
@@ -1522,13 +1609,17 @@ main_quality_filter() {
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_finald_R2_summary.csv &&
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $qscore_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > qscores_finald_R2_summary.csv 2> /dev/null &&
 					awk -F',' '!f && FNR==1{ f=1; print $0 }FNR>1{ s[FNR]+=$NF; $NF=""; r[FNR]=$0 }
-						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_final_R2_summary.csv &&
-					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R2_summary.csv nucleotides_final_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
+						END{ for(i=2;i<=FNR;i++) print r[i],s[i] }' $nucleotides_files | awk '{gsub(/ /,",");gsub(/,,/,","); print}' > nucleotides_final_R2_summary.csv 2> /dev/null &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R2_summary.csv nucleotides_final_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages 2> /dev/null & PIDR1=$!
 					wait $PIDR1
 				fi
 			fi
+			for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+			for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+			wait
+
 			mkdir full summary
 			mv *fastq* ./full/
 			mv *_summary* ./summary/
@@ -1559,9 +1650,6 @@ if [ "$walkaway" == True ]; then
 		echo -e "${magenta}- skipping read quality-filtering ${white}\n"
 	fi
 fi
-
-
-
 if [ "$walkaway" == False ]; then
 	echo -e "${magenta}- quality filtering was performed with q_min="$q_min" q_percent="$q_percent" ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
@@ -1587,8 +1675,6 @@ if [ "$walkaway" == False ]; then
 		time main_quality_filter &>> log.out
 	fi
 fi
-
-
 if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/6_quality_filtered_complete" ]]; then
 	rm ${projdir}/5_adapter_removed/pe/*fastq* 2> /dev/null
 	rm ${projdir}/5_adapter_removed/se/*fastq* 2> /dev/null

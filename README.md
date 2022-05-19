@@ -57,12 +57,12 @@ For help troubleshooting installation, see the troubleshooting section
 
 Set up your project directory containing the following:
 - A folder named "samples", which contains fastq file(s). Multiple libraries or demultiplexed fastq files can be included.
-- A file named "barcodes_lib1.txt", which contains barcodes and associated sample IDs. For additional libraries with different sample IDs specifiy "barcodes_lib2.txt", "barcodes_lib3.txt", ... "lib1_R1" and "lib1_R2" are variables in "config.sh" for R1 and R2 fastq file names, respectively, and correspond to "barcodes_lib1.txt".
+- A file named "barcodes_lib1.txt", which contains barcodes and associated sample IDs. For additional libraries with different sample IDs specifiy "barcodes_lib2.txt", "barcodes_lib3.txt", ... "lib1_R1" and "lib1_R2" are variables in "config.sh" for R1 and R2 fastq file names, respectively, and correspond to "barcodes_lib1.txt". For barcodes/barcode pairs that is not assigned to any sample, indicate the sample id as NA or na.
 - 2 files containing adapter sequences of R1/P5/forward (<adapters.R1.txt>) and R2/P7/reverse (<adapters.R2.txt>) reads.
 - config.sh (see "Configuration" below for detailed instructions on creating this file)
                                      .
 
-<a><img src="https://imgur.com/SYiOxfR.png" title="source: imgur.com" width=400 /></a>
+<img src="https://github.com/bodeolukolu/ngsComposer/blob/master/misc/ngsComposer_project_dir_setup.png" width="282" height="696">
 
 
 From command line, run ngsComposer as shown below:
@@ -79,7 +79,7 @@ Several **example datasets** are included in the "examples" directory. Users are
 ### Overview
 The order of steps in the ngsComposer pipeline are outlined in the following figure:
 
-<a><img src="https://i.imgur.com/99BsbsJ.png" title="source: imgur.com" /></a>
+<img src="https://github.com/bodeolukolu/ngsComposer/blob/master/misc/ngsComposer_overview_workflow.png" width="692" height="176">
 
 The steps implemented are first specified in a configuration file.
 
@@ -219,7 +219,6 @@ Optionally, one or more barcode files may be included in the project directory f
 - barcodes_1.txt
 - index.txt
 
-<a><img src="https://imgur.com/VlLCeY4.png" title="source: imgur.com" width=400 /></a>
 
 Naming conventions: "index.txt" is required, the barcodes file can be named as desired (see "Index file for directing multiple barcode files")
 
@@ -251,8 +250,6 @@ T	sample4
 #### Adapters file(s)
 Optionally, 'adapters.R2.txt' and 'adapters.R1.txt' may be included in the project directory for recognition and removal of adapters. The 'adapters.R2.txt' file contains the adapters expected to appear in the R1 reads. Adapter sequences should be newline-separated and be in 5' to 3' orientation. If libraries are barcoded, users are encouraged to provide adapter sequences that contain the corresponding barcodes expected in the opposing end of the read's adapter.
 
-<a><img src="https://i.imgur.com/3In8TX0.png" title="source: imgur.com" width=300 /></a>
-
 
 **adapters.R2.txt**
 ```
@@ -276,7 +273,6 @@ GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCTAACCATTCTC
 ```
 *Each of the above sample adapters is presented in 5' to 3' orientation and shares a common 'GTGACTGGAGTTCAGACGTGTGCTCTTCCGATCT' adapter sequence followed by expected barcodes. Adapter sequences may also include restriction motifs for greater detection, but these sequences will also be removed. Porifera.py creates all reverse-complements before detection.*
 
-<a><img src="https://i.imgur.com/mYBQWIv.png" title="source: imgur.com" width=600 /></a>
 
 *When paired end data is used, as above, 'adapters.R1.txt' and 'adapters.R2.txt' must be provided. Adapters are tested for the inclusion of barcodes and only those combinations of R1/R2 barcodes leading to a given sample will be used to search for adapters quickly and with a lower false positive rate.*
 

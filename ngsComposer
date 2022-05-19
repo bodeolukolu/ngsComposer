@@ -21,7 +21,7 @@ if [[ "$1" == "" ]]; then
   echo -e "${white}\t\tporifera.py - adapter removal"
   echo -e "${white}\t\tkrill.py    - quality filtering\n"
   echo -e "${white}\tproj_dir\t\tspecify absolute or relative path to project directory\n"
-  echo -e "${yellow}\tempirical base-call filtering pipeline for preprocessing fastq libraries\n"
+  echo -e "${yellow}\tempirical base calling and filtering pipeline for preprocessing fastq libraries\n"
   echo -e "${white}\tCommand:"
   echo -e "${white}\t\t--version, -v\t\tprint software version"
   echo -e "${white}\t\t--help, -h\t\tprint help message"
@@ -31,7 +31,7 @@ fi
 if [[ "$1" == "-v" || "$1" == "--version" ]]; then
   echo -e "${white}\n\tProgram:	ngsComposer"
   echo -e "${white}\tVersion:	1.0"
-  echo -e "${white}\tDescription:	empirical base-call filtering pipeline for preprocessing fastq libraries"
+  echo -e "${white}\tDescription:	empirical base calling and filtering pipeline for preprocessing fastq libraries"
   echo -e "${white}\tDevelopers:	Ryan G. Kuster and Bode A. Olukolu\n"
   echo -e "${white}\tContact:	Bode Olukolu <bolukolu@utk.edu>\n"
   echo -e "${white}\tmore info: \thttps://github.com/bodeolukolu/ngscomposer for full usage notes\n"
@@ -47,7 +47,7 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
   echo -e "${white}\t\tporifera.py - adapter removal"
   echo -e "${white}\t\tkrill.py    - quality filtering\n"
   echo -e "${white}\tproj_dir\t\tspecify absolute or relative path to project directory\n"
-  echo -e "${yellow}\tempirical base-call filtering pipeline for preprocessing fastq libraries\n"
+  echo -e "${yellow}\tempirical base calling and filtering pipeline for preprocessing fastq libraries\n"
   echo -e "${white}\tCommand:"
   echo -e "${white}\t\t--version, -v\t\tprint software version"
   echo -e "${white}\t\t--help, -h\t\tprint help message"
@@ -134,14 +134,16 @@ cd $projdir
 echo -e "${white}\n##################################################################################\n"
 echo -e "${yellow}\t- Program:	ngsComposer"
 echo -e "${yellow}\t- Version:	1.0"
-echo -e "${yellow}\t- Description:	empirical base-call filtering pipeline for preprocessing fastq libraries"
+echo -e "${yellow}\t- Description:	empirical base calling and filtering pipeline for preprocessing fastq libraries"
 echo -e "${yellow}\t- Contact:	Bode Olukolu <bolukolu@utk.edu> ${white}"
 echo -e "${yellow}\t- Developers:	Ryan G. Kuster and Bode A. Olukolu ${white}"
 echo -e "${yellow}\t- more info:	https://github.com/bodeolukolu/ngscomposer for full usage notes ${white}"
 echo -e "${white}\n##################################################################################\n"
 
 
-f=($(find . -maxdepth 1 -type f | wc -l))
+for i in *.txt; do tr -d '\15\32' < $i > temp; mv temp $i; done
+tr -d '\15\32' < config.sh > temp; mv temp config.sh
+for i in *.txt; do f=($(find . -maxdepth 1 -type f | wc -l))
 if [[ "$f" < 3 ]]; then
   echo -e "${magenta}- expecting at least 3 files if demultiplexing ${white}"
   echo -e "${magenta}- 1: at least one library in samples folder, i.e. single-end or paired-end fastq file(s)${white}"
