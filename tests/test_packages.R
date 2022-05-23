@@ -1,11 +1,13 @@
+
 args <- commandArgs(trailingOnly = TRUE)
 
-r_version = R.Version()
+suppressWarnings(r_version = R.Version())
+
 
 if (as.numeric(r_version[[6]]) > 3) {
   invisible()
 } else {
-  if (as.numeric(r_version[[6]]) == 3 & as.numeric(r_version[[7]]) > 5) {
+  if (as.numeric(r_version[[6]]) == 3 && as.numeric(r_version[[7]]) >= 5) {
     invisible()
   } else {
     r_v = paste(r_version[[6]], '.', r_version[[7]], sep='')

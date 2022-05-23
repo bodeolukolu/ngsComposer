@@ -143,7 +143,7 @@ echo -e "${white}\n#############################################################
 
 for i in *.txt; do tr -d '\15\32' < $i > temp; mv temp $i; done
 tr -d '\15\32' < config.sh > temp; mv temp config.sh
-for i in *.txt; do f=($(find . -maxdepth 1 -type f | wc -l))
+for i in *.txt; do f=($(find . -maxdepth 1 -type f | wc -l)); done
 if [[ "$f" < 3 ]]; then
   echo -e "${magenta}- expecting at least 3 files if demultiplexing ${white}"
   echo -e "${magenta}- 1: at least one library in samples folder, i.e. single-end or paired-end fastq file(s)${white}"

@@ -148,10 +148,14 @@ main_initial_qc() {
 		mkdir -p 1_initial_qc
 		list_lib=$(grep '^lib' config.sh | grep '_R1=' | awk '{gsub(/=/,"\t"); print $2}')
 		for li in $list_lib; do
-			python3 $crinoid -r1 ./samples/${li} -t $((threads/2)) -o ./1_initial_qc & PIDR1=$!
+			if [[ "$test_lib_R2" != False ]]; then
+				python3 $crinoid -r1 ./samples/${li} -t $((threads/2)) -o ./1_initial_qc & PIDR1=$!
+			else
+				python3 $crinoid -r1 ./samples/${li} -t $threads -o ./1_initial_qc & PIDR1=$!
+			fi
 			if [[ "$test_lib_R2" != False ]]; then
 				lj=$(echo $li | awk '{gsub(/R1/,"R2"); print}')
-				python3 $crinoid -r1 ./samples/${lib1_R2} -t $((threads/2)) -o ./1_initial_qc & PIDR2=$!
+				python3 $crinoid -r1 ./samples/${lj} -t $((threads/2)) -o ./1_initial_qc & PIDR2=$!
 			fi
 			wait $PIDR1
 			wait $PIDR2
@@ -817,7 +821,7 @@ main_motif_validation() {
 
 }
 cd $projdir
-if [[-z "$motifR1" ]] && [[-z "$motifR2" ]]; then
+if [[ -z "$motifR1" ]] && [[ -z "$motifR2" ]]; then
 	if [ "$walkaway" == False ]; then
 		echo -e "${magenta}- Do you want to perform known motif validation? ${white}\n"
 		read -p "- y(YES) or n(NO) " -t 36000 -n 1 -r
