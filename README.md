@@ -131,14 +131,14 @@ Using a text editor, save a file containing any of the following variables as a 
 
 |Variable      |Default       |Usage         |Input         |required/Optional|
 |:-------------|:-------------|:-------------|:-------------|:----------------|
-|QC_demultiplexed|na||summary and/or full|optional|
-|QC_motif_validated|na||summary and/or full|optional|
-|QC_end_trimmed|na||summary and/or full|optional|
-|QC_adapter_removed|na||summary and/or full|optional|
-|QC_final|summary||summary and/or full|optional|
+|QC_demultiplexed|na|produce Quality score plot|summary and/or full|optional|
+|QC_motif_validated|na|produce Quality score plot|summary and/or full|optional|
+|QC_end_trimmed|na|produce Quality score plot|summary and/or full|optional|
+|QC_adapter_removed|na|produce Quality score plot|summary and/or full|optional|
+|QC_final|na|produce Quality score plot|summary and/or full|optional|
 
 
-**Note: na indicates that variable is user-defined or hard-coded/computed intuitively, as well as a function of ploidy.*
+**Note: na indicates that variable is user-defined. Analytical will be skipped if set to na.
 
 
 
