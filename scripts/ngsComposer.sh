@@ -51,9 +51,6 @@ fi
 if [[ -z $q_percent ]]; then
 	q_percent=80
 fi
-if [[ -z $QC_final ]]; then
-	QC_final=summary
-fi
 if [[ -z $multithread_demultiplex ]]; then
 	multithread_demultiplex=False
 fi
