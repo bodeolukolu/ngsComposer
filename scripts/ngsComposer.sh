@@ -680,8 +680,8 @@ main_motif_validation() {
 
 	mv se pre_se
 	mkdir -p se
-	mot_se=$( ls ./pe/se* | cat - <(ls ./pre_se/se*) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
-	rm ./pre_se/se
+	mot_se=$( ls ./pe/se* | cat - <(ls ./pre_se/se* 2> /dev/null) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
+	rm ./pre_se/se 2> /dev/null
 	if [[ ! "$(ls -A ./pre_se/ 2> /dev/null)" ]]; then
 		rmdir pre_se
 	fi

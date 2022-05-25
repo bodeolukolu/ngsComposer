@@ -31,11 +31,11 @@ def crinoid_main():
     if args.a:
         visualizer(out1, out2, r_dir)
         sys.exit()
-    subprocess.check_call(['/usr/bin/Rscript',
+    subprocess.check_call(['Rscript',
             os.path.abspath(os.path.join(os.path.dirname(__file__),
             '..', 'tests', 'test_packages.R'))] + [r_dir], shell=False)
     crinoid_open(in1, out1, out2, procs, p64)
-    subprocess.check_call(['/usr/bin/Rscript',
+    subprocess.check_call(['Rscript',
             os.path.abspath(os.path.join(os.path.dirname(__file__),
             'helpers', 'qc_plots.R'))] + [out1, out2, r_dir], shell=False)
 
@@ -48,7 +48,7 @@ def crinoid_comp(curr, all_qc, procs, p64, r_dir, in1):
     out2 = os.path.join(curr, 'qscores.' + os.path.basename(in1)) + '.csv'
     crinoid_open(in1, out1, out2, procs, p64)
     if all_qc == 'full':
-        subprocess.check_call(['/usr/bin/Rscript',
+        subprocess.check_call(['Rscript',
             os.path.dirname(os.path.abspath(sys.argv[0])) +
             '/tools/helpers/qc_plots.R'] + [out1, out2, r_dir], shell=False)
 
@@ -263,7 +263,7 @@ def visualizer(out1, out2, r_dir):
     '''
     produce images using existing, raw nucleotide and qscore files
     '''
-    subprocess.check_call(['/usr/bin/Rscript',
+    subprocess.check_call(['Rscript',
            os.path.dirname(os.path.abspath(__file__)) +
            '/helpers/qc_plots.R'] + [out1, out2, r_dir], shell=False)
 

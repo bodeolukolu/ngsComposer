@@ -1,7 +1,7 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 
-suppressWarnings(r_version = R.Version())
+r_version = R.Version()
 
 
 if (as.numeric(r_version[[6]]) > 3) {
