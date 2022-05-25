@@ -314,7 +314,7 @@ main_demultiplex() {
 			wait
 
 			mkdir -p unknown
-			if test -f unknown*.fastq; then
+			if [[ ! -z $(ls unknown*.fastq 2> /dev/null) ]]; then
 				for i in unknown*.fastq; do $gzip $i 2> /dev/null; done
 				for i in unknown*.fastq.gz; do cat ${i} >> ./unknown/${i}; rm ${i} 2> /dev/null; done
 			fi
@@ -362,7 +362,7 @@ main_demultiplex() {
 				rm trimmed_se*
 				wait
 				mkdir -p unknown
-				if test -f unknown*.fastq; then
+				if [[ ! -z $(ls unknown*.fastq 2> /dev/null) ]]; then
 					for i in unknown*.fastq; do $gzip $i 2> /dev/null; done
 					for i in unknown*.fastq.gz; do cat ${i} >> ./unknown/${i}; rm ${i} 2> /dev/null; done
 				fi
