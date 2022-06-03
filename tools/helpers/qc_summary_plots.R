@@ -8,7 +8,7 @@ libdir <- args[3]
 
 
 .libPaths( c( .libPaths(), libdir) )
-suppressMessages(library(ggplot2))
+suppressMessages(library(ggplot2, quietly=T))
 
 
 qscores <- read.table(qscore_sum, header=F, sep=",")

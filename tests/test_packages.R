@@ -17,4 +17,4 @@ if (as.numeric(r_version[[6]]) > 3) {
 
 .libPaths(args[1])
 
-suppressMessages(library(ggplot2))
+suppressMessages(library(ggplot2, quietly=T))

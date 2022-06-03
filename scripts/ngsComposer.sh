@@ -694,7 +694,7 @@ main_motif_validation() {
 	wait
 	rm -rf pre_se
 	cd ./pe
-	if [[ ! -z "$(ls pe.*)" ]]; then
+	if [[ ! -z "$(ls pe.* 2> /dev/null)" ]]; then
 		for i in pe.*; do mv $i ${i#pe.}; done
 	fi
 	cd ../
@@ -955,7 +955,7 @@ main_end_trim() {
 	rm -rf pre_se 2> /dev/null
 	rm ./pe/trimmed_se* 2> /dev/null
 	cd ./pe
-	if test -f trimmed_pe.*; then
+	if [[ ! -z "$(ls trimmed_pe.* 2> /dev/null)" ]]; then
 		for i in trimmed_pe.*; do mv $i ${i#trimmed_pe.}; done
 	fi
 	cd ../
@@ -1233,7 +1233,7 @@ main_adapter_remove() {
 	rm -rf pre_se 2> /dev/null
 	rm ./pe/se.adapted*  2> /dev/null
 	cd ./pe
-	if [[ ! -z "$(ls pe.adapted.*)" ]]; then
+	if [[ ! -z "$(ls pe.adapted.* 2> /dev/null)" ]]; then
 		for i in pe.adapted.*; do mv $i ${i#pe.adapted.}; done
 	fi
 	cd ../se
@@ -1510,7 +1510,7 @@ main_quality_filter() {
 
 	rm -rf pre_se
 	cd ./pe
-	if [[ ! -z "$(ls pe.*)" ]]; then
+	if [[ ! -z "$(ls pe.* 2> /dev/null)" ]]; then
 		for i in pe.*; do mv $i ${i#pe.}; done
 	fi
 	cd ../

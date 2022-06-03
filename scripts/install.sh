@@ -35,6 +35,7 @@ echo -e "${blue}\n############################################## \n- installing 
   R -e 'install.packages("data.table", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("gtable", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("rlang", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
+  R -e 'install.packages("dplyr", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("plyr", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("Rcpp", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("scales", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
