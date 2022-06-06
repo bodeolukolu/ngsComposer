@@ -681,7 +681,6 @@ main_motif_validation() {
 	mv se pre_se
 	mkdir -p se
 	mot_se=$( ls ./pe/se* | cat - <(ls ./pre_se/se* 2> /dev/null) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
-	rm ./pre_se/se 2> /dev/null
 	if [[ ! "$(ls -A ./pre_se/ 2> /dev/null)" ]]; then
 		rmdir pre_se
 	fi
@@ -692,7 +691,7 @@ main_motif_validation() {
 		wait
 	done
 	wait
-	rm -rf pre_se
+	rm -rf pre_se 2> /dev/null
 	cd ./pe
 	if [[ ! -z "$(ls pe.* 2> /dev/null)" ]]; then
 		for i in pe.*; do mv $i ${i#pe.}; done
