@@ -143,6 +143,9 @@ echo -e "${white}\n#############################################################
 
 for i in *.txt; do tr -d '\15\32' < $i > temp; mv temp $i; done
 tr -d '\15\32' < config.sh > temp; mv temp config.sh
+for i in *.txt; do
+  awk '/^$/{f=1}END{ if (!f) {print "\r"}}1' $i > tmp && mv tmp $i
+done
 for i in *.txt; do f=($(find . -maxdepth 1 -type f | wc -l)); done
 if [[ "$f" < 3 ]]; then
   echo -e "${magenta}- expecting at least 3 files if demultiplexing ${white}"
