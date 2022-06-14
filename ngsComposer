@@ -141,7 +141,7 @@ echo -e "${yellow}\t- more info:	https://github.com/bodeolukolu/ngscomposer for 
 echo -e "${white}\n##################################################################################\n"
 
 
-for i in *.txt; do tr -d '\15\32' < $i > temp; mv temp $i; done
+for i in *.txt; do tr -d '\15\32' < $i > temp; mv temp $i; done 2> /dev/null
 tr -d '\15\32' < config.sh > temp; mv temp config.sh
 for i in *.txt; do
   awk '/^$/{f=1}END{ if (!f) {print "\r"}}1' $i > tmp && mv tmp $i

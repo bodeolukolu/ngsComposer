@@ -90,7 +90,7 @@ else
 	N=1 && loopthreads=$threads
 fi
 if [[ "$threads" -le 4 ]]; then
-	gthreads=threads
+	gthreads=$threads
 	gN=1
 else
 	gthreads=4
