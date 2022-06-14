@@ -1,6 +1,3 @@
-#!/usr/bin/env Rscript
-
-
 args <- commandArgs(TRUE)
 qscore_sum <- args[1]
 nucl_sum <- args[2]
