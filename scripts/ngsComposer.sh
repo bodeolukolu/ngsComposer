@@ -268,7 +268,7 @@ main_demultiplex() {
 				python3 $scallop -r1 ${projdir}/samples/"$li" -f $front_trim -o ./ & PIDR1=$!
 				wait $PIDR1
 			fi
-			$gzip trimmed_se* && wait
+			$gzip trimmed_se* 2> /dev/null/ && wait
 
 			if [[ "$test_lib_R2" != False ]]; then
 				python3 $anemone -r1 ./trimmed_se.${li} -r2 ./trimmed_se.${lj} -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./ & PIDR1=$!
