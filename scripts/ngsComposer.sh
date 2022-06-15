@@ -99,10 +99,18 @@ fi
 
 
 if [[ -d "${projdir}/2_demultiplexed/pe" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/pe/*f* 2> /dev/null)" ]]; then
-	for i in ${projdir}/2_demultiplexed/pe/*f*; do var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var; done
+	for i in ${projdir}/2_demultiplexed/pe/*f*; do
+		if [[ "$i" =~ _R1 ]] || [[ "$i" =~ _R2 ]]; then
+			var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var
+		fi
+	done
 fi
 if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se/*f* 2> /dev/null)" ]]; then
-	for i in ${projdir}/2_demultiplexed/se/*f*; do var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var; done
+	for i in ${projdir}/2_demultiplexed/se/*f*; do
+		if [[ "$i" =~ _R1 ]] || [[ "$i" =~ _R2 ]]; then
+			var=$(echo $i | awk '{gsub(/_R1/,".R1"); gsub(/_R2/,".R2");}1'); mv $i $var
+		fi
+	done
 fi
 
 
