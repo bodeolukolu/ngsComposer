@@ -157,25 +157,25 @@ main_initial_qc() {
 
 	cd ${projdir}/1_initial_qc
 
-	qscore_files=$(ls qscores*.R1*fastq.gz.csv)
-	nucleotides_files=$(ls nucleotides*.R1*fastq.gz.csv)
+	qscore_files=$(ls qscores*R1*fastq.gz.csv)
+	nucleotides_files=$(ls nucleotides*R1*fastq.gz.csv)
 	awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-	awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1' > qscores_initial_qc_R1_summary.csv &&
+	awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > qscores_initial_qc_R1_summary.csv &&
 	awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-	awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1' > nucleotides_initial_qc_R1_summary.csv &&
+	awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > nucleotides_initial_qc_R1_summary.csv &&
 	Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R1_summary.csv nucleotides_final_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 	wait $PIDR1
 
-	qscore_files=$(ls qscores*.R2*fastq.gz.csv 2> /dev/null/)
-	nucleotides_files=$(ls nucleotides*.R2*fastq.gz.csv 2> /dev/null/)
+	qscore_files=$(ls qscores*R2*fastq.gz.csv 2> /dev/null)
+	nucleotides_files=$(ls nucleotides*R2*fastq.gz.csv 2> /dev/null)
 	if [[ ! -z "$qscore_files" ]]; then
 		awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-		awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_initial_qc_R2_summary.csv &&
+		awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_initial_qc_R2_summary.csv &&
 		wait
 	fi
 	if [[ ! -z "$nucleotides_files" ]]; then
 		awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-		awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_initial_qc_R2_summary.csv &&
+		awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_initial_qc_R2_summary.csv &&
 		wait
 	fi
 	Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R2_summary.csv nucleotides_final_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages 2> /dev/null & PIDR1=$!
@@ -297,7 +297,7 @@ main_demultiplex() {
 				python3 $scallop -r1 ${projdir}/samples/"$li" -f $front_trim -o ./ & PIDR1=$!
 				wait $PIDR1
 			fi
-			$gzip trimmed_se* 2> /dev/null/ && wait
+			$gzip trimmed_se* 2> /dev/null && wait
 
 			if [[ "$test_lib_R2" != False ]]; then
 				python3 $anemone -r1 ./trimmed_se.${li} -r2 ./trimmed_se.${lj} -m $mismatch -c ${projdir}/${bc_matrix%.txt}_flush.txt -o ./ & PIDR1=$!
@@ -525,9 +525,9 @@ main_demultiplex() {
 			qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 			nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 			awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-			awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_demultiplexed_R1_summary.csv &&
+			awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_demultiplexed_R1_summary.csv &&
 			awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-			awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_demultiplexed_R1_summary.csv &&
+			awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_demultiplexed_R1_summary.csv &&
 			Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_demultiplexed_R1_summary.csv nucleotides_demultiplexed_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages  & PIDR1=$!
 			wait $PIDR1
 
@@ -535,9 +535,9 @@ main_demultiplex() {
 				qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_demultiplexed_R2_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_demultiplexed_R2_summary.csv &&
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_demultiplexed_R2_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_demultiplexed_R2_summary.csv &&
 				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_demultiplexed_R2_summary.csv nucleotides_demultiplexed_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 			fi
@@ -757,9 +757,9 @@ main_motif_validation() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_motif_valid_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_motif_valid_R1_summary.csv &&
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_motif_valid_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_motif_valid_R1_summary.csv &&
 				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_motif_valid_R1_summary.csv nucleotides_motif_valid_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
@@ -767,9 +767,9 @@ main_motif_validation() {
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_motif_valid_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_motif_valid_R2_summary.csv &&
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_motif_valid_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_motif_valid_R2_summary.csv &&
 					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_motif_valid_R2_summary.csv nucleotides_motif_valid_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
@@ -815,9 +815,9 @@ main_motif_validation() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_motif_valid_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_motif_valid_R1_summary.csv &&
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_motif_valid_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_motif_valid_R1_summary.csv &&
 				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_motif_valid_R1_summary.csv nucleotides_motif_valid_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
@@ -825,9 +825,9 @@ main_motif_validation() {
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_motif_valid_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_motif_valid_R2_summary.csv &&
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_motif_valid_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_motif_valid_R2_summary.csv &&
 					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_motif_valid_R2_summary.csv nucleotides_motif_valid_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
@@ -1015,9 +1015,9 @@ main_end_trim() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_end_trimmed_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_end_trimmed_R1_summary.csv &&
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_end_trimmed_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_end_trimmed_R1_summary.csv &&
 				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_end_trimmed_R1_summary.csv nucleotides_end_trimmed_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
@@ -1025,9 +1025,9 @@ main_end_trim() {
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_end_trimmed_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_end_trimmed_R2_summary.csv &&
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_end_trimmed_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_end_trimmed_R2_summary.csv &&
 					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_end_trimmed_R2_summary.csv nucleotides_end_trimmed_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
@@ -1073,9 +1073,9 @@ main_end_trim() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_end_trimmed_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_end_trimmed_R1_summary.csv &&
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_end_trimmed_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_end_trimmed_R1_summary.csv &&
 				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_end_trimmed_R1_summary.csv nucleotides_end_trimmed_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
@@ -1083,9 +1083,9 @@ main_end_trim() {
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_end_trimmed_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_end_trimmed_R2_summary.csv &&
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_end_trimmed_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_end_trimmed_R2_summary.csv &&
 					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_end_trimmed_R2_summary.csv nucleotides_end_trimmed_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
@@ -1295,9 +1295,9 @@ main_adapter_remove() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_adapter_removed_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_adapter_removed_R1_summary.csv &&
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_adapter_removed_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_adapter_removed_R1_summary.csv &&
 				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_adapter_removed_R1_summary.csv nucleotides_adapter_removed_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
@@ -1305,9 +1305,9 @@ main_adapter_remove() {
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_adapter_removed_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_adapter_removed_R2_summary.csv &&
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_adapter_removed_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_adapter_removed_R2_summary.csv &&
 					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_adapter_removed_R2_summary.csv nucleotides_adapter_removed_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
@@ -1353,9 +1353,9 @@ main_adapter_remove() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_adapter_removed_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_adapter_removed_R1_summary.csv &&
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_adapter_removed_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_adapter_removed_R1_summary.csv &&
 				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_adapter_removed_R1_summary.csv nucleotides_adapter_removed_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
@@ -1363,9 +1363,9 @@ main_adapter_remove() {
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_adapter_removed_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_adapter_removed_R2_summary.csv &&
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_adapter_removed_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_adapter_removed_R2_summary.csv &&
 					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_adapter_removed_R2_summary.csv nucleotides_adapter_removed_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 					wait $PIDR1
 				fi
@@ -1570,9 +1570,9 @@ main_quality_filter() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1' > qscores_final_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > qscores_final_R1_summary.csv &&
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1' > nucleotides_final_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > nucleotides_final_R1_summary.csv &&
 				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R1_summary.csv nucleotides_final_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
@@ -1580,9 +1580,9 @@ main_quality_filter() {
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_final_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_final_R2_summary.csv &&
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_final_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_final_R2_summary.csv &&
 					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R2_summary.csv nucleotides_final_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages 2> /dev/null & PIDR1=$!
 					wait $PIDR1
 				fi
@@ -1628,9 +1628,9 @@ main_quality_filter() {
 				qscore_files=$(ls qscores*.R1.fastq.gz.csv)
 				nucleotides_files=$(ls nucleotides*.R1.fastq.gz.csv)
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_final_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_final_R1_summary.csv &&
 				awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_final_R1_summary.csv &&
+				awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_final_R1_summary.csv &&
 				Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R1_summary.csv nucleotides_final_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
 				wait $PIDR1
 
@@ -1638,9 +1638,9 @@ main_quality_filter() {
 					qscore_files=$(ls qscores*.R2.fastq.gz.csv)
 					nucleotides_files=$(ls nucleotides*.R2.fastq.gz.csv)
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > qscores_final_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_final_R2_summary.csv &&
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^/,""); gsub(/^/,"");}1'  > nucleotides_final_R2_summary.csv &&
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_final_R2_summary.csv &&
 					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_final_R2_summary.csv nucleotides_final_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages 2> /dev/null & PIDR1=$!
 					wait $PIDR1
 				fi
