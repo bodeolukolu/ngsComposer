@@ -257,10 +257,11 @@ done
 
 cd $projdir
 test_fq=$(grep '^lib' config.sh | grep '_R' | awk '{gsub(/=/,"\t"); print $2}')
-cd samples 2>/dev/null
+mkdir -p samples
+cd samples
 for i in $test_fq; do
   if [[ ! -f "$i" ]]; then
-    echo -e "${magenta}- 1 or more of multiplexed fastq files are missing in samples folder ${white}"
+    echo -e "${magenta}- 1 or more of multiplexed fastq files are expected in samples folder ${white}"
     echo -e "${magenta}- Exiting ngsComposer ${white}\n"
 		sleep 5 && exit 1
   fi
