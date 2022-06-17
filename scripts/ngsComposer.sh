@@ -318,7 +318,7 @@ main_demultiplex() {
 
 			rm trimmed_se*
 			wait
-			for sid in $(ls *.R1.fastq | grep -v unknown); do
+			for sid in $(ls *.R1.fastq* | grep -v unknown); do
 				fringelen=$( awk -F'\t' -v sampid=${sid%.R1.fastq} '$1 == sampid' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk -F'\t' '{print $2}' )
 				if [[ "$fringelen" -gt 0 ]]; then
 					python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid}
@@ -327,7 +327,7 @@ main_demultiplex() {
 				wait
 			done
 			if [[ "$test_lib_R2" != False ]]; then
-				for sid in $(ls *.R2.fastq | grep -v unknown); do
+				for sid in $(ls *.R2.fastq* | grep -v unknown); do
 					fringelen=$( awk -F'\t' -v sampid=${sid%.R2.fastq} '$1 == sampid' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk -F'\t' '{print $3}' )
 					if [[ "$fringelen" -gt 0 ]]; then
 						python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid}
@@ -404,7 +404,7 @@ main_demultiplex() {
 					for i in unknown*.fastq.gz; do cat ${i} >> ./unknown/${i}; rm ${i} 2> /dev/null; done
 				fi
 				wait
-				for sid in $(ls *.R1.fastq | grep -v unknown); do
+				for sid in $(ls *.R1.fastq* | grep -v unknown); do
 					fringelen=$( awk -F'\t' -v sampid=${sid%.R1.fastq} '$1 == sampid' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk -F'\t' '{print $2}' )
 					if [[ "$fringelen" -gt 0 ]]; then
 						python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid}
@@ -413,7 +413,7 @@ main_demultiplex() {
 					wait
 				done
 				if [[ "$test_lib_R2" != False ]]; then
-					for sid in $(ls *.R2.fastq | grep -v unknown); do
+					for sid in $(ls *.R2.fastq* | grep -v unknown); do
 						fringelen=$( awk -F'\t' -v sampid=${sid%.R2.fastq} '$1 == sampid' ${projdir}/${bc_matrix%.txt}_fringe.txt | awk -F'\t' '{print $3}' )
 						if [[ "$fringelen" -gt 0 ]]; then
 							python3 $scallop -r1 $sid -f $fringelen && mv ./trimmed_se.${sid} ${sid}
