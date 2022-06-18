@@ -1330,7 +1330,7 @@ main_adapter_remove() {
 			find . -type d -empty -delete
 		fi
 
-		if [[ -d ${projdir}/5_adapter_removed/se]]; then
+		if [[ -d "${projdir}/5_adapter_removed/se" ]]; then
 			cd ${projdir}/5_adapter_removed/se
 			mkdir -p qc
 			if [[ "$test_lib_R2" != False ]] || [[ ! -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
