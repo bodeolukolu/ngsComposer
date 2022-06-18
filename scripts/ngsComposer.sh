@@ -1050,7 +1050,7 @@ main_end_trim() {
 			find . -type d -empty -delete
 		fi
 
-		if [[ -d ${projdir}/4_end_trimmed/se]]; then
+		if [[ -d "${projdir}/4_end_trimmed/se" ]]; then
 			cd ${projdir}/4_end_trimmed/se
 			mkdir -p qc
 			if [[ "$test_lib_R2" != False ]]  || [[ ! -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
