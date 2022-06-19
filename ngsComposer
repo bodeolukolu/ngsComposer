@@ -223,6 +223,7 @@ fi
 
 
 # Initial questions before running walkaway
+mkdir -p $projdir/samples
 cd $projdir/samples
 
 required=$(du -s . | awk '{print $1}') && required0=required
