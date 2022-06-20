@@ -1721,6 +1721,6 @@ fi
 ######################################################################################################################################################
 
 cd ${projdir}
-rm 1_initial_qc_complete 2_demultiplexed_complete 3_motif_removal_complete 4_end_trimming_complete 5_adapter_removal_complete 6_quality_filtered_complete
+rm 1_initial_qc_complete 2_demultiplexed_complete 3_motif_validation_complete 4_end_trimming_complete 5_adapter_removal_complete 6_quality_filtered_complete
 touch Analysis_Complete
 echo -e "${magenta}- Run Complete. ${white}\n"
