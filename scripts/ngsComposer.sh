@@ -457,13 +457,13 @@ main_demultiplex() {
 		rm na.R1.fastq.gz 2> /dev/null &&
 		rm na.R2.fastq.gz 2> /dev/null &&
 		wait
-		find -type f -wholename "./*chunk*/unknown.R1.fastq.gz" | xargs cat > ./unknown/unknown.R1.fastq.gz & PIDR1=$!
+		find -type f -wholename "./*chunk*/unknown/unknown.R1.fastq.gz" | xargs cat > ./unknown/unknown.R1.fastq.gz & PIDR1=$!
 		wait $PIDR1
 		if [[ "$test_lib_R2" != False ]]; then
-			find -type f -wholename "./*chunk*/unknown.R2.fastq.gz" | xargs cat > ./unknown/unknown.R2.fastq.gz  & PIDR2=$!
+			find -type f -wholename "./*chunk*/unknown/unknown.R2.fastq.gz" | xargs cat > ./unknown/unknown.R2.fastq.gz  & PIDR2=$!
 		fi
 		wait $PIDR2
-		rm ./*chunk*/unknown.R1.fastq.gz ./*chunk*/unknown.R2.fastq.gz
+		rm ./*chunk*/unknown/unknown.R1.fastq.gz ./*chunk*/unknown/unknown.R2.fastq.gz 2> /dev/null
 		wait
 		samples_r1=$(find -type f -wholename "./*/*R1*" | awk '{gsub(/\//,"\t"); print}' | awk '{print $3}' | sort | uniq | grep -v 'unknown' | grep -v 'qc')
 		for f in $samples_r1; do (
