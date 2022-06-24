@@ -132,6 +132,38 @@ main_initial_qc() {
 					wait $PIDR1
 				done
 				wait
+
+				cd ${projdir}/2_demultiplexed/pe/qc
+				qscore_files=$(ls qscores*R1*fastq.gz.csv)
+				nucleotides_files=$(ls nucleotides*R1*fastq.gz.csv)
+				if [[ "$(ls $qscore_files 2> /dev/null)" -gt 1 ]] && [[ "$(ls $nucleotides_files 2> /dev/null)" -gt 1 ]] ; then
+					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > qscores_initial_qc_R1_summary.csv &&
+					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > nucleotides_initial_qc_R1_summary.csv &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_initial_qc_R1_summary.csv nucleotides_initial_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
+					wait $PIDR1
+				fi
+
+				qscore_files=$(ls qscores*R2*fastq.gz.csv 2> /dev/null)
+				nucleotides_files=$(ls nucleotides*R2*fastq.gz.csv 2> /dev/null)
+				if [[ "$(ls $qscore_files 2> /dev/null)" -gt 1 ]] && [[ "$(ls $nucleotides_files 2> /dev/null)" -gt 1 ]] ; then
+					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_initial_qc_R2_summary.csv &&
+					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_initial_qc_R2_summary.csv &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_initial_qc_R2_summary.csv nucleotides_initial_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages 2> /dev/null & PIDR1=$!
+					wait $PIDR1
+				fi
+
+				for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+				for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+				wait
+
+				mkdir summary
+				mv *_summary* ./summary/
+				find . -type d -empty -delete
+
 			fi
 			if [[ -d "${projdir}/2_demultiplexed/se" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/se/*.f* 2> /dev/null)" ]]; then
 				mkdir -p ${projdir}/2_demultiplexed/se/qc
@@ -141,6 +173,38 @@ main_initial_qc() {
 					wait $PIDR1
 				done
 				wait
+
+				cd ${projdir}/2_demultiplexed/se/qc
+				qscore_files=$(ls qscores*R1*fastq.gz.csv)
+				nucleotides_files=$(ls nucleotides*R1*fastq.gz.csv)
+				if [[ "$(ls $qscore_files 2> /dev/null)" -gt 1 ]] && [[ "$(ls $nucleotides_files 2> /dev/null)" -gt 1 ]] ; then
+					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > qscores_initial_qc_R1_summary.csv &&
+					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > nucleotides_initial_qc_R1_summary.csv &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_initial_qc_R1_summary.csv nucleotides_initial_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
+					wait $PIDR1
+				fi
+
+				qscore_files=$(ls qscores*R2*fastq.gz.csv 2> /dev/null)
+				nucleotides_files=$(ls nucleotides*R2*fastq.gz.csv 2> /dev/null)
+				if [[ "$(ls $qscore_files 2> /dev/null)" -gt 1 ]] && [[ "$(ls $nucleotides_files 2> /dev/null)" -gt 1 ]] ; then
+					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_initial_qc_R2_summary.csv &&
+					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
+					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_initial_qc_R2_summary.csv &&
+					Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_initial_qc_R2_summary.csv nucleotides_initial_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages 2> /dev/null & PIDR1=$!
+					wait $PIDR1
+				fi
+
+				for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+				for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+				wait
+
+				mkdir summary
+				mv *_summary* ./summary/
+				find . -type d -empty -delete
+
 			fi
 		fi
 	else
@@ -161,39 +225,39 @@ main_initial_qc() {
 			wait $PIDR1
 			wait $PIDR2
 		done
+
+		cd ${projdir}/1_initial_qc
+
+		qscore_files=$(ls qscores*R1*fastq.gz.csv)
+		nucleotides_files=$(ls nucleotides*R1*fastq.gz.csv)
+		if [[ "$(ls $qscore_files 2> /dev/null)" -gt 1 ]] && [[ "$(ls $nucleotides_files 2> /dev/null)" -gt 1 ]] ; then
+			awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
+			awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > qscores_initial_qc_R1_summary.csv &&
+			awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
+			awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > nucleotides_initial_qc_R1_summary.csv &&
+			Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_initial_qc_R1_summary.csv nucleotides_initial_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
+			wait $PIDR1
+		fi
+
+		qscore_files=$(ls qscores*R2*fastq.gz.csv 2> /dev/null)
+		nucleotides_files=$(ls nucleotides*R2*fastq.gz.csv 2> /dev/null)
+		if [[ "$(ls $qscore_files 2> /dev/null)" -gt 1 ]] && [[ "$(ls $nucleotides_files 2> /dev/null)" -gt 1 ]] ; then
+			awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
+			awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_initial_qc_R2_summary.csv &&
+			awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
+			awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_initial_qc_R2_summary.csv &&
+			Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_initial_qc_R2_summary.csv nucleotides_initial_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages 2> /dev/null & PIDR1=$!
+			wait $PIDR1
+		fi
+
+		for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
+		for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
+		wait
+
+		mkdir summary
+		mv *_summary* ./summary/
+		find . -type d -empty -delete
 	fi
-
-	cd ${projdir}/1_initial_qc
-
-	qscore_files=$(ls qscores*R1*fastq.gz.csv)
-	nucleotides_files=$(ls nucleotides*R1*fastq.gz.csv)
-	if [[ "$(ls $qscore_files 2> /dev/null)" -gt 1 ]] && [[ "$(ls $nucleotides_files 2> /dev/null)" -gt 1 ]] ; then
-		awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-		awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > qscores_initial_qc_R1_summary.csv &&
-		awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-		awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > nucleotides_initial_qc_R1_summary.csv &&
-		Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_initial_R1_summary.csv nucleotides_initial_R1_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages & PIDR1=$!
-		wait $PIDR1
-	fi
-
-	qscore_files=$(ls qscores*R2*fastq.gz.csv 2> /dev/null)
-	nucleotides_files=$(ls nucleotides*R2*fastq.gz.csv 2> /dev/null)
-	if [[ "$(ls $qscore_files 2> /dev/null)" -gt 1 ]] && [[ "$(ls $nucleotides_files 2> /dev/null)" -gt 1 ]] ; then
-		awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
-		awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_initial_qc_R2_summary.csv &&
-		awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
-		awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > nucleotides_initial_qc_R2_summary.csv &&
-		Rscript "${ngsComposer_dir}"/tools/helpers/qc_summary_plots.R qscores_initial_R2_summary.csv nucleotides_initial_R2_summary.csv ${ngsComposer_dir}/tools/helpers/R_packages 2> /dev/null & PIDR1=$!
-		wait $PIDR1
-	fi
-
-	for i in nucleotides*.csv; do cat <(printf "A,C,G,T,N\n") $i > ${i}.tmp; mv ${i}.tmp $i; done
-	for i in qscores*.csv; do for n in $(seq 1 $(awk -F',' '{print NF; exit}' $i)); do printf "q${n},"; done | awk '{gsub(/,$/,"");}1' - | cat - $i > ${i}.tmp; mv ${i}.tmp $i; done
-	wait
-
-	mkdir summary
-	mv *_summary* ./summary/
-	find . -type d -empty -delete
 
 	echo "intial QC complete" > ${projdir}/1_initial_qc_complete
 }
@@ -365,10 +429,10 @@ main_demultiplex() {
 
 		else
 			$zcat ${projdir}/samples/"$li" | awk 'NR%40000000==1{x="R1_chunk"++i".fastq";}{print > x}' - & PIDR1=$!
-			wait $PIDR1
 			if [[ "$test_lib_R2" != False ]]; then
 				$zcat ${projdir}/samples/"$lj" | awk 'NR%40000000==1{x="R2_chunk"++i".fastq";}{print > x}' - & PIDR2=$!
 			fi
+			wait $PIDR1
 			wait $PIDR2
 			for f in R1_chunk*; do
 				subdir=${f%.fastq}
@@ -430,7 +494,7 @@ main_demultiplex() {
 				done < ${projdir}/cat_RC.txt
 				cd ../
 				) &
-				if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $threads ]]; then
 					wait
 				fi
 			done
@@ -450,10 +514,10 @@ main_demultiplex() {
 	if [[ $multithread_demultiplex == False ]]; then
 		:
 	else
-		rm NA.R1.fastq.gz 2> /dev/null &&
-		rm NA.R2.fastq.gz 2> /dev/null &&
-		rm na.R1.fastq.gz 2> /dev/null &&
-		rm na.R2.fastq.gz 2> /dev/null &&
+		rm ./*chunk*/NA.R1.fastq.gz 2> /dev/null &&
+		rm ./*chunk*/NA.R2.fastq.gz 2> /dev/null &&
+		rm ./*chunk*/na.R1.fastq.gz 2> /dev/null &&
+		rm ./*chunk*/na.R2.fastq.gz 2> /dev/null &&
 		wait
 		find -type f -wholename "./*chunk*/unknown/unknown.R1.fastq.gz" | xargs cat > ./unknown/unknown.R1.fastq.gz & PIDR1=$!
 		wait $PIDR1
@@ -466,19 +530,20 @@ main_demultiplex() {
 		samples_r1=$(find -type f -wholename "./*/*R1*" | awk '{gsub(/\//,"\t"); print}' | awk '{print $3}' | sort | uniq | grep -v 'unknown' | grep -v 'qc')
 		for f in $samples_r1; do (
 			if [[ "$(ls -A ./*chunk*/*R2.fastq.gz 2> /dev/null)" ]]; then
-				find ./*chunk*/${f} | xargs cat > ./pe/${f}
-				find ./*chunk*/${f%.R1.fastq.gz}.R2.fastq.gz | xargs cat > ./pe/${f%.R1.fastq.gz}.R2.fastq.gz
+				find ./*chunk*/"${f}" | xargs cat > ./pe/"${f}"
+				find ./*chunk*/"${f%.R1.fastq.gz}.R2.fastq.gz" | xargs cat > ./pe/"${f%.R1.fastq.gz}.R2.fastq.gz"
 			else
-				find ./*chunk*/${f} | xargs cat > ./se/${f}
+				find ./*chunk*/"${f}" | xargs cat > ./se/"${f}"
 			fi
 			wait
-			rm ./*chunk*/${f} ./*chunk*/${f%.R1.fastq.gz}.R2.fastq.gz
+			rm ./*chunk*/${f} ./*chunk*/"${f%.R1.fastq.gz}.R2.fastq.gz"
 			wait ) &
-			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 				wait
 			fi
 		done
 	fi
+	wait
 
 
 	find . -type d -empty -delete
@@ -508,7 +573,7 @@ main_demultiplex() {
 		mkdir -p qc
 		for f in *.R1.fastq.gz; do (
 			python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
-			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 				wait
 			fi
 		done
@@ -516,7 +581,7 @@ main_demultiplex() {
 		if [[ "$test_lib_R2" != False ]]; then
 			for f in *.R2.fastq.gz; do (
 				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
-				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 					wait
 				fi
 			done
@@ -608,7 +673,7 @@ if [ "$walkaway" == True ]; then
 	fi
 fi
 if [ "$walkaway" == False ]; then
-	echo -e "${magenta}- Demultiplexing was performed with a mismatch="$mismatch" ${white}"
+	echo -e "${magenta}- Demultiplexing was performed with a mismatch=$mismatch ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
 	echo -e "${magenta}- Do you want to change the mismatch value and re-run demultiplexing? ${white}"
 	read -p "- n(NO) or <enter_value>? " -n 1 -r
@@ -651,7 +716,7 @@ main_motif_validation() {
 				$gzip ./*${motgz} && $gzip ./*${motgz%.R1.fastq}.R2.fastq &&
 				cd ../ &&
 				wait ) &
-				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 					wait
 				fi
 		done
@@ -666,7 +731,7 @@ main_motif_validation() {
 				$gzip ./*${motgz} && $gzip ./*${motgz%.R1.fastq}.R2.fastq &&
 				cd ../ &&
 				wait ) &
-				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 					wait
 				fi
 		done
@@ -681,7 +746,7 @@ main_motif_validation() {
 				$gzip ./*${motgz} && $gzip ./*${motgz%.R1.fastq}.R2.fastq &&
 				cd ../ &&
 				wait ) &
-				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 					wait
 				fi
 		done
@@ -696,7 +761,7 @@ main_motif_validation() {
 				$gzip ./*${motgz} &&
 				cd ../ &&
 				wait ) &
-				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 					wait
 				fi
 		done
@@ -749,7 +814,7 @@ main_motif_validation() {
 			for f in *.R1.fastq.gz; do (
 				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
 				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 					wait
 				fi
 			done
@@ -797,7 +862,7 @@ main_motif_validation() {
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
 					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 						wait
 					fi
 				done
@@ -806,7 +871,7 @@ main_motif_validation() {
 			if [[ -d se && "$test_lib_R2" == False ]] || [[ -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
-					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 						wait
 					fi
 				done
@@ -875,7 +940,7 @@ if [[ -z "$motifR1" ]] && [[ -z "$motifR2" ]]; then
 	fi
 
 	if [ "$walkaway" == False ]; then
-		echo -e "${magenta}- motif validation was performed with R1_motif("$R1_motif") and R2_motif("$R2_motif") ${white}"
+		echo -e "${magenta}- motif validation was performed with R1_motif($R1_motif) and R2_motif($R2_motif) ${white}"
 		echo -e "${magenta}- Check output and QC plot(s) ${white}"
 		echo -e "${magenta}- Do you want to accept R1_motif validation? ${white}"
 		read -p "- y(YES) or <enter_new_motif>? " -n 1 -r
@@ -942,7 +1007,7 @@ main_end_trim() {
 			$gzip ./*${etmgz} && $gzip ./*${etmgz%.R1.fastq}.R2.fastq &&
 			cd ../ &&
 			wait ) &
-			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 				wait
 			fi
 		done
@@ -964,7 +1029,7 @@ main_end_trim() {
 				cd ../ &&
 				wait
 			fi  ) &
-			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 				wait
 			fi
 		done
@@ -1007,7 +1072,7 @@ main_end_trim() {
 			for f in *.R1.fastq.gz; do (
 				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
 				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 					wait
 				fi
 			done
@@ -1055,7 +1120,7 @@ main_end_trim() {
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
 					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 						wait
 					fi
 				done
@@ -1064,7 +1129,7 @@ main_end_trim() {
 			if [[ -d se && "$test_lib_R2" == False ]] || [[ -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
-					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 						wait
 					fi
 				done
@@ -1131,7 +1196,7 @@ if [ "$walkaway" == True ]; then
 	fi
 fi
 if [ "$walkaway" == False ]; then
-	echo -e "${magenta}- end trimming was performed with end_score="$end_score", window="$window", and min_len="$min_len" ${white}"
+	echo -e "${magenta}- end trimming was performed with end_score=$end_score, window=$window, and min_len=$min_len ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
 	echo -e "${magenta}- Do you want to change end_score value? ${white}"
 	read -p "- n(NO) or <enter_new_value>? " -n 1 -r
@@ -1219,7 +1284,7 @@ main_adapter_remove() {
 	    $gzip ./*${adpgz} && $gzip ./*${adpgz%.R1.fastq}.R2.fastq &&
 	    cd ../ &&
 			wait ) &
-			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 				wait
 			fi
 		done
@@ -1240,7 +1305,7 @@ main_adapter_remove() {
 	      cd ../ &&
 	      wait
 	    fi  ) &
-			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 				wait
 			fi
 		done
@@ -1287,7 +1352,7 @@ main_adapter_remove() {
 			for f in *.R1.fastq.gz; do (
 				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
 				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 					wait
 				fi
 			done
@@ -1335,7 +1400,7 @@ main_adapter_remove() {
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
 					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 						wait
 					fi
 				done
@@ -1344,7 +1409,7 @@ main_adapter_remove() {
 			if [[ -d se && "$test_lib_R2" == False ]] || [[ -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
-					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 						wait
 					fi
 				done
@@ -1411,7 +1476,7 @@ if [ "$walkaway" == True ]; then
 	fi
 fi
 if [ "$walkaway" == False ]; then
-	echo -e "${magenta}- adapter removal was performed with adapter_match="$adapter_match" min_len="$min_len" ${white}"
+	echo -e "${magenta}- adapter removal was performed with adapter_match=$adapter_match min_len=$min_len ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
 	echo -e "${magenta}- Do you want to change adapter_match value? ${white}"
 	read -p "- n(NO) or <enter_new_value>? " -n 1 -r
@@ -1496,7 +1561,7 @@ main_quality_filter() {
 			$gzip ./*${fingz} && $gzip ./*${fingz%.R1.fastq}.R2.fastq &&
 			cd ../ &&
 			wait ) &
-			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 				wait
 			fi
 		done
@@ -1519,7 +1584,7 @@ main_quality_filter() {
 				wait
 			fi
 			) &
-			if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 				wait
 			fi
 		done
@@ -1562,7 +1627,7 @@ main_quality_filter() {
 			for f in *.R1.fastq.gz; do (
 				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
 				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-				if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 					wait
 				fi
 			done
@@ -1610,7 +1675,7 @@ main_quality_filter() {
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
 					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 						wait
 					fi
 				done
@@ -1619,7 +1684,7 @@ main_quality_filter() {
 			if [[ -d se && "$test_lib_R2" == False ]] || [[ -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
 				for f in *.R1.fastq.gz; do (
 					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
-					if [[ $(jobs -r -p | wc -l) -ge gN ]]; then
+					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 						wait
 					fi
 				done
@@ -1686,7 +1751,7 @@ if [ "$walkaway" == True ]; then
 	fi
 fi
 if [ "$walkaway" == False ]; then
-	echo -e "${magenta}- quality filtering was performed with q_min="$q_min" q_percent="$q_percent" ${white}"
+	echo -e "${magenta}- quality filtering was performed with q_min=$q_min q_percent=$q_percent ${white}"
 	echo -e "${magenta}- Check output and QC plot(s) ${white}"
 	echo -e "${magenta}- Do you want to change q_min value? ${white}"
 	read -p "- n(NO) or <enter_new_value>? " -n 1 -r
