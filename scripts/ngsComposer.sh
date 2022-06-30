@@ -538,7 +538,7 @@ main_demultiplex() {
 			wait
 			rm ./*chunk*/${f} ./*chunk*/"${f%.R1.fastq.gz}.R2.fastq.gz"
 			wait ) &
-			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 				wait
 			fi
 		done
@@ -572,16 +572,16 @@ main_demultiplex() {
 		fi
 		mkdir -p qc
 		for f in *.R1.fastq.gz; do (
-			python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
-			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+			python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc ) &
+			if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 				wait
 			fi
 		done
 		wait
 		if [[ "$test_lib_R2" != False ]]; then
 			for f in *.R2.fastq.gz; do (
-				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
-				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+				python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc ) &
+				if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 					wait
 				fi
 			done
@@ -716,7 +716,7 @@ main_motif_validation() {
 				$gzip ./*${motgz} && $gzip ./*${motgz%.R1.fastq}.R2.fastq &&
 				cd ../ &&
 				wait ) &
-				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 					wait
 				fi
 		done
@@ -731,7 +731,7 @@ main_motif_validation() {
 				$gzip ./*${motgz} && $gzip ./*${motgz%.R1.fastq}.R2.fastq &&
 				cd ../ &&
 				wait ) &
-				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 					wait
 				fi
 		done
@@ -746,7 +746,7 @@ main_motif_validation() {
 				$gzip ./*${motgz} && $gzip ./*${motgz%.R1.fastq}.R2.fastq &&
 				cd ../ &&
 				wait ) &
-				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 					wait
 				fi
 		done
@@ -761,7 +761,7 @@ main_motif_validation() {
 				$gzip ./*${motgz} &&
 				cd ../ &&
 				wait ) &
-				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+				if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 					wait
 				fi
 		done
@@ -812,9 +812,9 @@ main_motif_validation() {
 			cd ${projdir}/3_motif_validated/pe
 			mkdir -p qc
 			for f in *.R1.fastq.gz; do (
-				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+				python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc &&
+				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$loopthreads" -o ./qc 2> /dev/null ) &
+				if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 					wait
 				fi
 			done
@@ -860,9 +860,9 @@ main_motif_validation() {
 			mkdir -p qc
 			if [[ "$test_lib_R2" != False ]] || [[ ! -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
 				for f in *.R1.fastq.gz; do (
-					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+					python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc &&
+					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$loopthreads" -o ./qc 2> /dev/null ) &
+					if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 						wait
 					fi
 				done
@@ -870,8 +870,8 @@ main_motif_validation() {
 			fi
 			if [[ -d se && "$test_lib_R2" == False ]] || [[ -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
 				for f in *.R1.fastq.gz; do (
-					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
-					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+					python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc ) &
+					if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 						wait
 					fi
 				done
@@ -1007,7 +1007,7 @@ main_end_trim() {
 			$gzip ./*${etmgz} && $gzip ./*${etmgz%.R1.fastq}.R2.fastq &&
 			cd ../ &&
 			wait ) &
-			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 				wait
 			fi
 		done
@@ -1029,7 +1029,7 @@ main_end_trim() {
 				cd ../ &&
 				wait
 			fi  ) &
-			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 				wait
 			fi
 		done
@@ -1070,9 +1070,9 @@ main_end_trim() {
 			cd ${projdir}/4_end_trimmed/pe
 			mkdir -p qc
 			for f in *.R1.fastq.gz; do (
-				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+				python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc &&
+				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$loopthreads" -o ./qc 2> /dev/null ) &
+				if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 					wait
 				fi
 			done
@@ -1118,9 +1118,9 @@ main_end_trim() {
 			mkdir -p qc
 			if [[ "$test_lib_R2" != False ]]  || [[ ! -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
 				for f in *.R1.fastq.gz; do (
-					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+					python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc &&
+					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$loopthreads" -o ./qc 2> /dev/null ) &
+					if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 						wait
 					fi
 				done
@@ -1128,8 +1128,8 @@ main_end_trim() {
 			fi
 			if [[ -d se && "$test_lib_R2" == False ]] || [[ -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
 				for f in *.R1.fastq.gz; do (
-					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
-					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+					python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc ) &
+					if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 						wait
 					fi
 				done
@@ -1284,7 +1284,7 @@ main_adapter_remove() {
 	    $gzip ./*${adpgz} && $gzip ./*${adpgz%.R1.fastq}.R2.fastq &&
 	    cd ../ &&
 			wait ) &
-			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 				wait
 			fi
 		done
@@ -1305,7 +1305,7 @@ main_adapter_remove() {
 	      cd ../ &&
 	      wait
 	    fi  ) &
-			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 				wait
 			fi
 		done
@@ -1350,9 +1350,9 @@ main_adapter_remove() {
 			cd ${projdir}/5_adapter_removed/pe
 			mkdir -p qc
 			for f in *.R1.fastq.gz; do (
-				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+				python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc &&
+				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$loopthreads" -o ./qc 2> /dev/null ) &
+				if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 					wait
 				fi
 			done
@@ -1398,9 +1398,9 @@ main_adapter_remove() {
 			mkdir -p qc
 			if [[ "$test_lib_R2" != False ]] || [[ ! -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
 				for f in *.R1.fastq.gz; do (
-					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+					python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc &&
+					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$loopthreads" -o ./qc 2> /dev/null ) &
+					if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 						wait
 					fi
 				done
@@ -1408,8 +1408,8 @@ main_adapter_remove() {
 			fi
 			if [[ -d se && "$test_lib_R2" == False ]] || [[ -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
 				for f in *.R1.fastq.gz; do (
-					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
-					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+					python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc ) &
+					if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 						wait
 					fi
 				done
@@ -1561,7 +1561,7 @@ main_quality_filter() {
 			$gzip ./*${fingz} && $gzip ./*${fingz%.R1.fastq}.R2.fastq &&
 			cd ../ &&
 			wait ) &
-			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 				wait
 			fi
 		done
@@ -1584,7 +1584,7 @@ main_quality_filter() {
 				wait
 			fi
 			) &
-			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 				wait
 			fi
 		done
@@ -1625,9 +1625,9 @@ main_quality_filter() {
 			cd ${projdir}/6_quality_filtered_final/pe
 			mkdir -p qc
 			for f in *.R1.fastq.gz; do (
-				python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-				if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+				python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc &&
+				python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$loopthreads" -o ./qc 2> /dev/null ) &
+				if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 					wait
 				fi
 			done
@@ -1673,9 +1673,9 @@ main_quality_filter() {
 			mkdir -p qc
 			if [[ "$test_lib_R2" != False ]] || [[ ! -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
 				for f in *.R1.fastq.gz; do (
-					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc &&
-					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$gthreads" -o ./qc 2> /dev/null ) &
-					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+					python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc &&
+					python3 $crinoid -r1 ${f%.R1.fastq.gz}.R2.fastq.gz -t "$loopthreads" -o ./qc 2> /dev/null ) &
+					if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 						wait
 					fi
 				done
@@ -1683,8 +1683,8 @@ main_quality_filter() {
 			fi
 			if [[ -d se && "$test_lib_R2" == False ]] || [[ -z "$(ls *R2*fastq.gz 2> /dev/null)" ]]; then
 				for f in *.R1.fastq.gz; do (
-					python3 $crinoid -r1 $f -t "$gthreads" -o ./qc ) &
-					if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
+					python3 $crinoid -r1 $f -t "$loopthreads" -o ./qc ) &
+					if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
 						wait
 					fi
 				done
