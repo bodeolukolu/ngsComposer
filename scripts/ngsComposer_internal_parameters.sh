@@ -12,7 +12,7 @@ export ngsComposer_dir=${ngsComposer_dir%/*}
 export projdir=${projdir%/*}
 
 cluster="$(grep cluster config.sh)"
-cluster=${cluster//*=}
+export cluster=${cluster//*=}
 
 ######################################################################################################################################################
 # Software defined parameters

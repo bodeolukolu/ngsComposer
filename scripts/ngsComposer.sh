@@ -1,100 +1,100 @@
 
 if [ -z "$threads" ]; then
-	threads=$(nproc --all)
+	export threads=$(nproc --all)
 	if [[ "$threads" -ge 4 ]]; then
-		threads=$((threads-2))
+		export threads=$((threads-2))
 	fi
 fi
 
 if [[ -z $walkaway ]]; then
-	walkaway=True
+	export walkaway=True
 fi
 if [[ -z $cluster ]]; then
-	cluster=False
+	export cluster=False
 fi
 if [[ -z $samples_alt_dir ]]; then
-	samples_alt_dir=True
+	export samples_alt_dir=True
 fi
 if [[ -z $rm_transit ]]; then
-	rm_transit=True
+	export rm_transit=True
 fi
 if [[ -z $front_trim ]]; then
-	front_trim=0
+	export front_trim=0
 fi
 if [[ -z $mismatch ]]; then
-	mismatch=1
+	export mismatch=1
 fi
 if [[ -z $R1_motif ]]; then
-	R1_motif=""
+	export R1_motif=""
 fi
 if [[ -z $R2_motif ]]; then
-	R2_motif=""
+	export R2_motif=""
 fi
 if [[ -z $non_genomic ]]; then
-	non_genomic=0
+	export non_genomic=0
 fi
 if [[ -z $end_score ]]; then
-	end_score=20
+	export end_score=20
 fi
 if [[ -z $window ]]; then
-	window=10
+	export window=10
 fi
 if [[ -z $min_len ]]; then
-	min_len=64
+	export min_len=64
 fi
 if [[ -z $adapter_match ]]; then
-	adapter_match=12
+	export adapter_match=12
 fi
 if [[ -z $q_min ]]; then
-	q_min=20
+	export q_min=20
 fi
 if [[ -z $q_percent ]]; then
-	q_percent=80
+	export q_percent=80
 fi
 if [[ -z $multithread_demultiplex ]]; then
-	multithread_demultiplex=False
+	export multithread_demultiplex=False
 fi
 
 cd $projdir
 
-test_lib_R2=$(grep '^lib' config.sh | grep '_R2=' | awk '{gsub(/=/,"\t"); print $2}')
+export test_lib_R2=$(grep '^lib' config.sh | grep '_R2=' | awk '{gsub(/=/,"\t"); print $2}')
 if [[ -z "$test_lib_R2" ]]; then
-	test_lib_R2=False
+	export test_lib_R2=False
 fi
 
 nthreads="$(grep threads config.sh)"
-nthreads=${nthreads//*=}
-totalk=$(awk '/^MemTotal:/{print $2}' /proc/meminfo)
-loopthreads=2
+export nthreads=${nthreads//*=}
+export totalk=$(awk '/^MemTotal:/{print $2}' /proc/meminfo)
+export loopthreads=2
 if [[ "$threads" -gt 1 ]]; then
-	N=$((threads/2))
-	ram1=$(($totalk/$N))
+	export N=$((threads/2))
+	export ram1=$(($totalk/$N))
 else
-	N=1 && loopthreads=threads
+	export N=1 && export loopthreads=threads
 fi
-ram1=$((ram1/1000000))
-Xmx1=-Xmx${ram1}G
-ram2=$(echo "$totalk*0.00000095" | bc)
-ram2=${ram2%.*}
-Xmx2=-Xmx${ram2}G
+export ram1=$((ram1/1000000))
+export Xmx1=-Xmx${ram1}G
+export ram2=$(echo "$totalk*0.00000095" | bc)
+export ram2=${ram2%.*}
+export Xmx2=-Xmx${ram2}G
 if [[ -z "$threads" ]]; then
-	threads=$(nproc --all)
+	export threads=$(nproc --all)
 	if [[ "$threads" -ge 4 ]]; then
-		threads=$((threads-2))
+		export threads=$((threads-2))
 	fi
 fi
 if  [[ "$threads" -ge 1 ]]; then
-	loopthreads=2
-	N=$(($threads/2))
+	export loopthreads=2
+	export N=$(($threads/2))
 else
-	N=1 && loopthreads=$threads
+	export N=1 && export loopthreads=$threads
 fi
 if [[ "$threads" -le 4 ]]; then
-	gthreads=$threads
-	gN=1
+	export gthreads=$threads
+	export gN=1
 else
-	gthreads=4
-	gN=$(( threads / gthreads ))
+	export gthreads=4
+	export gN=$(( threads / gthreads ))
 fi
 
 
@@ -120,8 +120,8 @@ echo -e "${blue}\n##############################################################
 main_initial_qc() {
 
 	cd ${projdir}
-	test_bc=$(grep '^lib' config.sh | grep '_bc' | awk '{gsub(/=/,"\t"); print $2}')
-	test_fq=$(grep '^lib' config.sh | grep '_R' | awk '{gsub(/=/,"\t"); print $2}')
+	export test_bc=$(grep '^lib' config.sh | grep '_bc' | awk '{gsub(/=/,"\t"); print $2}')
+	export test_fq=$(grep '^lib' config.sh | grep '_R' | awk '{gsub(/=/,"\t"); print $2}')
 	if [[ -z "$test_bc" || -z "$test_fq" ]]; then
 		if [[ -d  2_demultiplexed ]]; then
 			if [[ -d "${projdir}/2_demultiplexed/pe" ]] && [[ "$(ls -A ${projdir}/2_demultiplexed/pe/*.f* 2> /dev/null)" ]]; then
@@ -291,12 +291,12 @@ main_demultiplex() {
   cd ${projdir}
   mkdir -p 2_demultiplexed
 	mkdir -p ./2_demultiplexed/pe; mkdir -p ./2_demultiplexed/se; mkdir -p ./2_demultiplexed/unknown
-  list_lib=$(grep '^lib' config.sh | grep '_R1=' | awk '{gsub(/=/,"\t"); print $2}')
+  export list_lib=$(grep '^lib' config.sh | grep '_R1=' | awk '{gsub(/=/,"\t"); print $2}')
 
   for li in $list_lib; do
 		cd ${projdir}
-    bc_matrix=$(grep -h "$li" config.sh | awk '{gsub(/_R1/,"\t"); print $1"_bc"}')
-    bc_matrix=$(grep -h "$bc_matrix" config.sh | awk '{gsub(/=/,"\t"); print $2}')
+    export bc_matrix=$(grep -h "$li" config.sh | awk '{gsub(/_R1/,"\t"); print $1"_bc"}')
+    export bc_matrix=$(grep -h "$bc_matrix" config.sh | awk '{gsub(/=/,"\t"); print $2}')
     if [[ "$test_lib_R2" != False ]]; then
 			lj=$(echo $li | awk '{gsub(/_R1/,"_R2");gsub(/.R1/,".R2"); }1')
 		fi
