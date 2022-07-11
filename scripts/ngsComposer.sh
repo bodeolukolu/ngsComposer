@@ -419,11 +419,11 @@ main_demultiplex() {
 			fi
 			wait
 			if [[ "$test_lib_R2" != False ]]; then
-				mv *.fastq.gz ./pe/
+				for combfq in *.fastq.gz; do cat $combfq >> ./pe/$combfq && rm $combfq; done
 			fi
 			wait
 			if [[ "$test_lib_R2" == False ]]; then
-				mv *.fastq.gz ./se/
+				for combfq in *.fastq.gz; do cat $combfq >> ./se/$combfq && rm $combfq; done
 			fi
 			wait
 
@@ -520,25 +520,27 @@ main_demultiplex() {
 		# rm ./*chunk*/na.R2.fastq.gz 2> /dev/null &&
 		wait
 		find -type f -wholename "./*chunk*/unknown/unknown.R1.fastq.gz" | xargs cat > ./unknown/unknown.R1.fastq.gz & PIDR1=$!
-		wait $PIDR1
 		if [[ "$test_lib_R2" != False ]]; then
 			find -type f -wholename "./*chunk*/unknown/unknown.R2.fastq.gz" | xargs cat > ./unknown/unknown.R2.fastq.gz  & PIDR2=$!
 		fi
+		wait $PIDR1
 		wait $PIDR2
 		rm ./*chunk*/unknown/unknown.R1.fastq.gz ./*chunk*/unknown/unknown.R2.fastq.gz 2> /dev/null
 		wait
+
 		samples_r1=$(find -type f -wholename "./*/*R1*" | awk '{gsub(/\//,"\t"); print}' | awk '{print $3}' | sort | uniq | grep -v 'unknown' | grep -v 'qc')
 		for f in $samples_r1; do (
-			if [[ "$(ls -A ./*chunk*/*R2.fastq.gz 2> /dev/null)" ]]; then
-				find ./*chunk*/"${f}" | xargs cat > ./pe/"${f}"
-				find ./*chunk*/"${f%.R1.fastq.gz}.R2.fastq.gz" | xargs cat > ./pe/"${f%.R1.fastq.gz}.R2.fastq.gz"
+			if [[ "$(find *chunk* -type f -wholename *"\/${f%.R1.fastq.gz}.R2.fastq.gz" 2> /dev/null | wc -l )" -ge 1 ]]; then
+				find *chunk* -type f -wholename *"\/${f}" | xargs cat > ./pe/${f}
+				find *chunk* -type f -wholename *"\/${f%.R1.fastq.gz}.R2.fastq.gz" | xargs cat > ./pe/${f%.R1.fastq.gz}.R2.fastq.gz
 			else
-				find ./*chunk*/"${f}" | xargs cat > ./se/"${f}"
+				find *chunk* -type f -wholename *"\/${f}" | xargs cat > ./se/${f}
 			fi
 			wait
-			rm ./*chunk*/${f} ./*chunk*/"${f%.R1.fastq.gz}.R2.fastq.gz"
+			rm ./*chunk*/${f}
+			rm ./*chunk*/${f%.R1.fastq.gz}.R2.fastq.gz
 			wait ) &
-			if [[ $(jobs -r -p | wc -l) -ge $N ]]; then
+			if [[ $(jobs -r -p | wc -l) -ge $gN ]]; then
 				wait
 			fi
 		done
