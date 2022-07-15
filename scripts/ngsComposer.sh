@@ -406,10 +406,10 @@ main_demultiplex() {
 				fi
 				rm ${p}_Row*_Column*
 			done < ${projdir}/cat_RC.txt
-			# rm NA.R1.fastq.gz 2> /dev/null &&
-			# rm NA.R2.fastq.gz 2> /dev/null &&
-			# rm na.R1.fastq.gz 2> /dev/null &&
-			# rm na.R2.fastq.gz 2> /dev/null &&
+			rm NA.R1.fastq.gz 2> /dev/null &&
+			rm NA.R2.fastq.gz 2> /dev/null &&
+			rm na.R1.fastq.gz 2> /dev/null &&
+			rm na.R2.fastq.gz 2> /dev/null &&
 			wait
 
 			mkdir -p unknown
@@ -514,10 +514,10 @@ main_demultiplex() {
 	if [[ $multithread_demultiplex == False ]]; then
 		:
 	else
-		# rm ./*chunk*/NA.R1.fastq.gz 2> /dev/null &&
-		# rm ./*chunk*/NA.R2.fastq.gz 2> /dev/null &&
-		# rm ./*chunk*/na.R1.fastq.gz 2> /dev/null &&
-		# rm ./*chunk*/na.R2.fastq.gz 2> /dev/null &&
+		rm ./*chunk*/NA.R1.fastq.gz 2> /dev/null &&
+		rm ./*chunk*/NA.R2.fastq.gz 2> /dev/null &&
+		rm ./*chunk*/na.R1.fastq.gz 2> /dev/null &&
+		rm ./*chunk*/na.R2.fastq.gz 2> /dev/null &&
 		wait
 		find -type f -wholename "./*chunk*/unknown/unknown.R1.fastq.gz" | xargs cat > ./unknown/unknown.R1.fastq.gz & PIDR1=$!
 		if [[ "$test_lib_R2" != False ]]; then
