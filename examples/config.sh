@@ -35,3 +35,7 @@ QC_motif_validated=summary,full
 QC_end_trimmed=summary,full
 QC_adapter_removed=summary,full
 QC_final=summary,full
+
+#Advanced_parameters
+###################################################
+multithread_demultiplex=True

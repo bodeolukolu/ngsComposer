@@ -134,9 +134,9 @@ main_initial_qc() {
 				wait
 
 				cd ${projdir}/2_demultiplexed/pe/qc
-				qscore_files=$(ls qscores*R1*fastq.gz.csv)
-				nucleotides_files=$(ls nucleotides*R1*fastq.gz.csv)
-				if [[ "$(ls $qscore_files 2> /dev/null)" -gt 1 ]] && [[ "$(ls $nucleotides_files 2> /dev/null)" -gt 1 ]] ; then
+				qscore_files=$(ls qscores*R1*fastq.gz.csv | wc -l)
+				nucleotides_files=$(ls nucleotides*R1*fastq.gz.csv | wc -l)
+				if [[ "$qscore_files" -gt 1 ]] && [[ "$nucleotides_files" -gt 1 ]] ; then
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
 					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1' > qscores_initial_qc_R1_summary.csv &&
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
@@ -145,9 +145,9 @@ main_initial_qc() {
 					wait $PIDR1
 				fi
 
-				qscore_files=$(ls qscores*R2*fastq.gz.csv 2> /dev/null)
-				nucleotides_files=$(ls nucleotides*R2*fastq.gz.csv 2> /dev/null)
-				if [[ "$(ls $qscore_files 2> /dev/null)" -gt 1 ]] && [[ "$(ls $nucleotides_files 2> /dev/null)" -gt 1 ]] ; then
+				qscore_files=$(ls qscores*R2*fastq.gz.csv 2> /dev/null | wc -l)
+				nucleotides_files=$(ls nucleotides*R2*fastq.gz.csv 2> /dev/null | wc -l)
+				if [[ "$qscore_files" -gt 1 ]] && [[ "$nucleotides_files" -gt 1 ]] ; then
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $qscore_files | \
 					awk '{gsub(/  /,",");}1' | awk '{gsub(/ /,",");}1' | awk '{gsub(/,,/,",");}1' | awk '{gsub(/^,/,""); gsub(/,$/,"");}1'  > qscores_initial_qc_R2_summary.csv &&
 					awk -F',' '{for (i=1;i<=NF;i++) total[FNR","i]+=$i;} END{for (j=1;j<=FNR;j++) {for (i=1;i<=NF;i++) printf "%3i ",total[j","i]; print "";}}' $nucleotides_files | \
@@ -782,7 +782,7 @@ main_motif_validation() {
 
 	mv se pre_se
 	mkdir -p se
-	mot_se=$( ls ./pe/se* | cat - <(ls ./pre_se/se* 2> /dev/null) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
+	mot_se=$( ls ./pe/se* 2> /dev/null | cat - <(ls ./pre_se/se* 2> /dev/null) | awk '{gsub(/ /,"\n"); gsub(/.\/pe\//,""); gsub(/.\/pre_se\//,""); gsub(/se./,"");}1' | sort | uniq)
 	if [[ ! "$(ls -A ./pre_se/ 2> /dev/null)" ]]; then
 		rmdir pre_se
 	fi
