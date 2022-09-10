@@ -7,9 +7,9 @@
 
 # Introduction
 
-ngsComposer is an automated pipeline for processing and qiality filtering Next-Generation Sequencing (NGS) reads. It
+ngsComposer is an automated pipeline for demultiplexing and quality-filtering Next-Generation Sequencing (NGS) reads.
 
-For questions, bugs, and suggestions, please contact bolukolu@utk.edu.
+For questions, bugs, and suggestions, please contact: bolukolu@utk.edu.
 
 Developers:	Ryan G. Kuster (UTK, TN) and Bode A. Olukolu (UTK, TN)
 
@@ -281,10 +281,8 @@ All tools available in the ngsComposer pipeline can be called individually from 
 
 
 ## Related Software
-- Next-Generation Sequencing-based Genotyping (NGG)
-    - [GBSapp: automated pipeline for variant calling and filtering.](https://github.com/bodeolukolu/GBSapp)
-- Metagenome/microbiome profiling
-    - [Qmatey: Quantitative Metagenomic Alignment and Taxonomic Exact-matching.](https://github.com/bodeolukolu/Qmatey)
+- [GBSapp: automated pipeline for variant calling and filtering.](https://github.com/bodeolukolu/GBSapp)
+- [Qmatey: Quantitative Metagenomic Alignment and Taxonomic Exact-matching.](https://github.com/bodeolukolu/Qmatey)
 
 ## Select Article Referencing ngsComposer
 1. ngsComposer: an automated pipeline for empirically based NGS data quality filtering. [Kuster et al. 2021](https://doi.org/10.1093/bib/bbab092)
