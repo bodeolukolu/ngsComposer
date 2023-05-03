@@ -54,6 +54,9 @@ fi
 if [[ -z $multithread_demultiplex ]]; then
 	export multithread_demultiplex=False
 fi
+if [[ -z $QC_final ]]; then
+	QC_final=summary
+fi
 
 cd $projdir
 
