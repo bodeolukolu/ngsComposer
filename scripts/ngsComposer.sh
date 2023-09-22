@@ -937,7 +937,7 @@ if [[ -z "$motifR1" ]] && [[ -z "$motifR2" ]]; then
 	fi
 	if [ "$walkaway" == True ]; then
 		if [ "$motif_validation" == 1 ]; then
-			echo -e "${magenta}- performing known motif validation ${white}\n"
+			echo -e "${magenta}- performing motif validation with known/specified motif ${white}\n"
 			time main_motif_validation &>> log.out
 		else
 			echo -e "${magenta}- skipping known motif validation ${white}\n"
@@ -965,9 +965,6 @@ if [[ -z "$motifR1" ]] && [[ -z "$motifR2" ]]; then
 		fi
 		if [[ -z "$R1_motif_new" && -z "$R2_motif_new" ]]; then
 			echo -e "${magenta}- ngsComposer will replace output from motif_validation with demultiplexing output, i.e. skipping motif_validation ${white}"
-			rm -rf ${projdir}/3_motif_validated/pe 2> /dev/null
-			rm -rf ${projdir}/3_motif_validated/se 2> /dev/null
-			mv ${projdir}/2_demultiplexed/pe ${projdir}/3_motif_validated/
 		else
 			if [[ "$R1_motif" == "$R1_motif_new" && "$R2_motif" == "$R2_motif_new" ]]; then
 				echo -e "${magenta}- ngsComposer will proceed to the next analytical step ${white}"
@@ -979,7 +976,7 @@ if [[ -z "$motifR1" ]] && [[ -z "$motifR2" ]]; then
 		fi
 	fi
 
-	if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/3_motif_validation_complete" ]]; then
+	if [[ "$rm_transit" == True ]] && [[ -d "${projdir}/3_motif_validated" ]]; then
 		rm ${projdir}/2_demultiplexed/pe/*fastq* 2> /dev/null
 	fi
 fi
@@ -1236,7 +1233,7 @@ if [ "$walkaway" == False ]; then
 		time main_end_trim &>> log.out
 	fi
 fi
-if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/4_end_trimming_complete" ]]; then
+if [[ "$rm_transit" == True ]] && [[ -d "${projdir}/4_end_trimmed" ]]; then
 	rm ${projdir}/3_motif_validated/pe/*fastq* 2> /dev/null
 	rm ${projdir}/3_motif_validated/se/*fastq* 2> /dev/null
 fi
@@ -1507,7 +1504,7 @@ if [ "$walkaway" == False ]; then
 		time main_adapter_remove &>> log.out
 	fi
 fi
-if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/5_adapter_removal_complete" ]]; then
+if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/5_adapter_removed" ]]; then
 	rm ${projdir}/4_end_trimmed/pe/*fastq* 2> /dev/null
 	rm ${projdir}/4_end_trimmed/se/*fastq* 2> /dev/null
 fi
@@ -1780,7 +1777,7 @@ if [ "$walkaway" == False ]; then
 		time main_quality_filter &>> log.out
 	fi
 fi
-if [[ "$rm_transit" == True ]] && [[ -f "${projdir}/6_quality_filtered_complete" ]]; then
+if [[ "$rm_transit" == True ]] && [[ -d "${projdir}/6_quality_filtered_final" ]]; then
 	rm ${projdir}/5_adapter_removed/pe/*fastq* 2> /dev/null
 	rm ${projdir}/5_adapter_removed/se/*fastq* 2> /dev/null
 fi

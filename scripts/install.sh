@@ -33,6 +33,7 @@ echo -e "${blue}\n############################################## \n- installing 
   cd ./helpers/R_packages
   R -e 'install.packages("ggplot2", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("data.table", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
+  R -e 'install.packages("cli", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("gtable", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("rlang", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
   R -e 'install.packages("dplyr", dependencies = TRUE, repos="http://cran.r-project.org", lib="./")'
