@@ -1,0 +1,53 @@
+***showing pipeline help below: scroll through and q(quit) to exit pipeline help***
+
+**General pipeline parameters**
+===============================
+|Variable      |Default       |Usage         |Input         |required/Optional|
+|:-------------|:-------------|:-------------|:-------------|:----------------|
+|threads|total-2|choose maximum number of subprocesses that can run simultaneously|integer|optional|
+|walkaway|True|run from beginning to end without pausing at qc steps |True or False|optional|
+|cluster|False|run on compute cluster node (default: slurm) or workstation|True or False|optional|
+|samples_alt_dir|False|input files stored in different different from project directory|True or False|optional|
+|rm_transit|True|remove each transitional file folder to save space|True or False|optional|
+
+
+**Input pipeline files**
+========================
+|Variable      |Default       |Usage         |Input         |required/Optional|
+|:-------------|:-------------|:-------------|:-------------|:----------------|
+|lib1_R1|na|input fastq file name for R1/P5/forward reads|string|required|
+|lib1_R2|na|input fastq file name for R2/P7/reverse reads|string|optional|
+|lib1_bc|na|name of file containing barcodes|string|required|
+|lib2_R1|na|additional input fastq file name for R1/P5/forward reads|string|required|
+|lib2_R2|na|additional input fastq file name for R2/P7/reverse reads|string|optional|
+|lib2_bc|na|additional name of file containing barcodes|string|required|
+
+
+**Tool pipeline Parameters**
+============================
+|Variable      |Default       |Usage         |Input         |required/Optional|
+|:-------------|:-------------|:-------------|:-------------|:----------------|
+|front_trim|0|number of bases in buffer sequence to trim|integer|optional|
+|mismatch|1|number of mismatches (hamming distance) allowed in barcodes|integer|optional|
+|R1_motif|na|motif filtering for R1/P5/forward reads|string or list of comma-separated strings|optional|
+|R2_motif|na|motif filtering for R2/P7/reverse reads|string or list of comma-separated strings|optional|
+|end_score|20|end-trim once entire window >= this Q score|integer|optional|
+|window|10|size of window to test for >= end_trim|integer|optional|
+|min_len|64|minimum read length to retain after end-trimming and adapter removal|integer|optional|
+|adapter_match|12|number of base matches to identify adapters|integer|optional|
+|q_min|20|Q score minimum (Phred value 0-40) applied to q_percent variable|integer|optional|
+|q_percent|80|percentage of basses in read >= q_min Q scores|integer|optional|
+
+**Visualizations**
+==================
+|Variable      |Default       |Usage         |Input         |required/Optional|
+|:-------------|:-------------|:-------------|:-------------|:----------------|
+|QC_demultiplexed|na|produce Quality score plot|summary and/or full|optional|
+|QC_motif_validated|na|produce Quality score plot|summary and/or full|optional|
+|QC_end_trimmed|na|produce Quality score plot|summary and/or full|optional|
+|QC_adapter_removed|na|produce Quality score plot|summary and/or full|optional|
+|QC_final|na|produce Quality score plot|summary and/or full|optional|
+
+**Note: na indicates that variable is user-defined. Analytical will be skipped if set to na.
+
+***press q(quit) to exit pipeline help***

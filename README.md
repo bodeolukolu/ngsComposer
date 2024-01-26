@@ -174,6 +174,7 @@ end_score=20
 window=10
 min_len=64
 adapter_match=12
+trim_homopolymer=10
 q_min=20
 q_percent=80
 
