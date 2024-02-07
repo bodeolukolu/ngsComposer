@@ -59,23 +59,19 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
   fi
   exit 0
 fi
+
+projdir="$( cd -- "$(dirname "$1 ")" >/dev/null 2>&1 ; pwd -P )/"
 if [[ "$1" == "install" ]]; then
   mkdir -p $ngsComposer_dir/tools
   cd $ngsComposer_dir/tools
   bash $ngsComposer_dir/scripts/install.sh
   wait; exit 0
 fi
+if [[ -d "$ngsComposer_dir/tools/helpers/R_packages/" ]] && [[ $(ls -A "$ngsComposer_dir/tools/helpers/R_packages/") -lt 229 ]] ; then
+  cd $ngsComposer_dir/tools
+  bash $ngsComposer_dir/scripts/install.sh
+fi
 
-projdir="$( cd -- "$(dirname "$1 ")" >/dev/null 2>&1 ; pwd -P )/"
-if [[ ! -d "$ngsComposer_dir/tools" ]]; then
-  mkdir -p $ngsComposer_dir/tools
-  cd $ngsComposer_dir/tools
-  bash $ngsComposer_dir/scripts/install.sh
-fi
-if [[ -d "$ngsComposer_dir/tools" ]]; then
-  cd $ngsComposer_dir/tools
-  bash $ngsComposer_dir/scripts/install.sh
-fi
 
 
 # if [ "${ngsComposer_dir:0:1}" = "." ]; then
