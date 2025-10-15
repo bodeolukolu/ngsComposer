@@ -67,7 +67,7 @@ if [[ "$1" == "install" ]]; then
   bash $ngsComposer_dir/scripts/install.sh
   wait; exit 0
 fi
-if [[ -d "$ngsComposer_dir/tools/helpers/R_packages/" ]] && [[ $(ls -A "$ngsComposer_dir/tools/helpers/R_packages/") -lt 229 ]] ; then
+if [[ -d "$ngsComposer_dir/tools/helpers/R_packages/" ]] && [[ $(ls -A "$ngsComposer_dir/tools/helpers/R_packages/" > /dev/null 2>&1) -lt 229 ]] ; then
   cd $ngsComposer_dir/tools
   bash $ngsComposer_dir/scripts/install.sh
 fi
